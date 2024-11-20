@@ -26,6 +26,29 @@ const DateTimeField = () => {
 
   const [error, setError] = useState<string | null>(null)
 
+  const validateEndDate = (endDate: Date | null, startDate: Date | null) => {
+    if (startDate && endDate && endDate < startDate) {
+      toast.error('시작 일자는 종료 일자보다 빨라야 합니다!', {
+        className: 'text-[14px]',
+      })
+      return false
+    }
+    setError(null)
+    return true
+  }
+
+  /** 종일 옵션 선택 시, 시작 날짜의 시간을 자정으로 변환하는 함수 */
+  const setMidnight = (date: Date) => {
+    return setHours(setMinutes(setSeconds(setMilliseconds(date, 0), 0), 0), 0)
+  }
+
+  /** 종일 옵션 선택 시, 마지막 날짜의 시간을 23시 59분으로 변환하는 함수 */
+  const setEndOfDay = (date: Date) => {
+    return setHours(setMinutes(setSeconds(setMilliseconds(date, 999), 59), 59), 23)
+  }
+
+  console.log({ startDate, endDate })
+
   const CustomInput = React.forwardRef<
     HTMLDivElement,
     { value?: string; onClick?: () => void }
@@ -46,21 +69,6 @@ const DateTimeField = () => {
     </div>
   ))
 
-  const validateEndDate = (endDate: Date | null, startDate: Date | null) => {
-    if (startDate && endDate && endDate < startDate) {
-      toast.error('시작 일자는 종료 일자보다 빨라야 합니다!', {
-        className: 'text-[14px]',
-      })
-      return false
-    }
-    setError(null)
-    return true
-  }
-
-  const setMidnight = (date: Date) => {
-    return setHours(setMinutes(setSeconds(setMilliseconds(date, 0), 0), 0), 0)
-  }
-
   return (
     <>
       <BaseField
@@ -68,28 +76,45 @@ const DateTimeField = () => {
         label="날짜와 시간"
         renderInput={() => (
           <div className="pt-5">
+
+            {/* 종일 옵션 토글 */}
             <div className="mb-6 flex justify-between">
               <h2 className="text-sm sm:text-base">하루 종일</h2>
               <Controller
                 name="isAllDay"
                 control={control}
                 render={({ field }) => (
-                  <label className="switch">
-                    {/* TODO: checkbox -> toggle로 수정 예정 */}
+                  <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
+                      className="sr-only peer"
                       {...field}
                       checked={field.value}
                       onChange={(e) => {
                         field.onChange(e)
                         if (e.target.checked) {
-                          if (startDate)
-                            setValue('startDate', setMidnight(startDate))
-                          if (endDate) setValue('endDate', setMidnight(endDate))
+                          if (startDate) setValue('startDate', setMidnight(startDate))
+                          if (endDate) setValue('endDate', setEndOfDay(endDate))
                         }
                       }}
                     />
-                    <span className="slider round"></span>
+                    <div className="
+                      w-11 h-6 bg-gray-300 
+                      peer-checked:bg-primary-base
+                      rounded-full peer 
+                      after:content-[''] 
+                      after:absolute 
+                      after:top-0.5 
+                      after:left-[2px] 
+                      after:bg-white 
+                      after:rounded-full 
+                      after:h-5 
+                      after:w-5 
+                      after:transition-all
+                      peer-checked:after:translate-x-full 
+                      peer-checked:after:border-white"
+                    >
+                    </div>
                   </label>
                 )}
               />

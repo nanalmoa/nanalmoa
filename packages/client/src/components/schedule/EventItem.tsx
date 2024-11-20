@@ -27,16 +27,22 @@ const EventItem = ({ schedule }: Props) => {
       className={`flex w-full items-center gap-x-3 rounded-lg border-2 px-4 py-3 shadow-sm transition duration-300 ease-in-out hover:scale-[1.02] hover:shadow-md`}
     >
       <div className="flex flex-col flex-wrap items-center justify-center">
-        <h1 className="text-lg font-semibold">
-          {formatDate(DateFormatTypeEnum.Time24, schedule.startDate)}
-        </h1>
-        {isDurationScheduleInSameDay && (
-          <h1 className="text-lg font-semibold">-</h1>
-        )}
-        {isDurationScheduleInSameDay && (
-          <h1 className="text-lg font-semibold">
-            {formatDate(DateFormatTypeEnum.Time24, schedule.endDate)}
-          </h1>
+        {schedule.isAllDay ? (
+          <h1 className="text-sm font-semibold">하루종일</h1>
+        ) : (
+          <>
+            <h1 className="text-lg font-semibold">
+              {formatDate(DateFormatTypeEnum.Time24, schedule.startDate)}
+            </h1>
+            {isDurationScheduleInSameDay && (
+              <h1 className="text-lg font-semibold">-</h1>
+            )}
+            {isDurationScheduleInSameDay && (
+              <h1 className="text-lg font-semibold">
+                {formatDate(DateFormatTypeEnum.Time24, schedule.endDate)}
+              </h1>
+            )}
+          </>
         )}
       </div>
 
