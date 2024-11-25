@@ -1,1 +1,0 @@
-{"version":3,"file":"response-group-detail.dto.js","sourceRoot":"","sources":["../../../../src/modules/group/dto/response-group-detail.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,6CAA6C;AAC7C,6DAA2D;AAC3D,2EAAoE;AAEpE,MAAa,sBAAuB,SAAQ,yCAAoB;CAM/D;AAND,wDAMC;AADC;IAJC,IAAA,qBAAW,EAAC;QACX,WAAW,EAAE,UAAU;QACvB,IAAI,EAAE,CAAC,kDAAsB,CAAC;KAC/B,CAAC;;uDAC+B"}

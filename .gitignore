@@ -1,21 +1,23 @@
 # Dependencies
 node_modules
-/build
 
 # Build outputs
-/dist
-dist-ssr
-*.local
-dev-dist
+/packages/*/dist
+
+# pwa
+/packages/*/dev-dist
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.*.env
 
 # Logs
 logs
 *.log
-npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 # IDE and editors
 # VSCode
@@ -24,28 +26,6 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-# Other IDEs
-.idea
-.project
-.classpath
-.c9/
-*.launch
-.settings/
-*.sublime-workspace
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Environment variables
-.env
-.env.*
-!.env.example
-.development.env
-.production.env
-.stage.env
 
 # Operating System
 .DS_Store
@@ -66,9 +46,6 @@ pids
 
 # Diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
-
-# PWA
-dev-dist
 
 # TypeScript
 *.tsbuildinfo
