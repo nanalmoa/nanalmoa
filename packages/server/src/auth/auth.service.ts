@@ -166,7 +166,7 @@ export class AuthService {
       sub: user.userUuid,
       socialProvider: AuthProvider.BASIC,
     }
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' })
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '7d' })
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '14d' })
 
     const auth = await this.authRepository.findOne({

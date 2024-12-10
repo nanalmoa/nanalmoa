@@ -16,9 +16,16 @@ import { ManagerModule } from '../manager/manager.module'
 import { GroupModule } from '../group/group.module'
 import { GroupSchedule } from '@/entities/group-schedule.entity'
 import { Multer } from 'multer'
+import { ScheduleRecurring } from '@/entities/recurring-schedule.entity'
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Schedule, User, Auth, GroupSchedule]),
+    TypeOrmModule.forFeature([
+      Schedule,
+      ScheduleRecurring,
+      User,
+      Auth,
+      GroupSchedule,
+    ]),
     HttpModule,
     ConfigModule,
     CategoriesModule,

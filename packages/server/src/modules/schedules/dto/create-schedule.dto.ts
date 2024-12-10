@@ -14,6 +14,62 @@ import {
 import { ApiProperty } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 
+export class RecurringInfo {
+  @ApiProperty({
+    description: '반복 유형',
+    enum: ['none', 'daily', 'weekly', 'monthly', 'yearly'],
+    example: 'weekly',
+  })
+  @IsEnum(['none', 'daily', 'weekly', 'monthly', 'yearly'])
+  repeatType: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
+
+  @ApiProperty({
+    description: '반복 종료 날짜',
+    example: '2024-11-02T23:59:59Z',
+  })
+  @IsNotEmpty({ message: '반복 일정의 경우 반복 종료 날짜는 필수입니다.' })
+  @Type(() => Date)
+  @IsDate()
+  repeatEndDate: Date
+
+  @ApiProperty({
+    description: '반복 간격 (일/주/월/년 단위)',
+    example: 1,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  recurringInterval?: number
+
+  @ApiProperty({
+    description:
+      '주간 반복 시 반복할 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)',
+    example: [2, 4],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  recurringDaysOfWeek?: number[]
+
+  @ApiProperty({
+    description: '월간 반복 시 반복할 날짜',
+    example: 15,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  recurringDayOfMonth?: number
+
+  @ApiProperty({
+    description: '연간 반복 시 반복할 월 (0-11)',
+    example: 5,
+    required: false,
+  })
+  @IsNumber()
+  @IsOptional()
+  recurringMonthOfYear?: number
+}
+
 export class GroupInfo {
   @ApiProperty({
     description: '그룹 ID',
@@ -103,61 +159,14 @@ export class CreateScheduleDto {
   isRecurring: boolean = false
 
   @ApiProperty({
-    description: '반복 유형',
-    enum: ['none', 'daily', 'weekly', 'monthly', 'yearly'],
-    example: 'weekly',
-  })
-  @IsEnum(['none', 'daily', 'weekly', 'monthly', 'yearly'])
-  @IsOptional()
-  repeatType?: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
-
-  @ApiProperty({
-    description: '반복 종료 날짜',
-    example: '2024-11-02T23:59:59Z',
+    description: '반복 일정 옵션',
+    type: () => RecurringInfo,
     required: false,
   })
-  @ValidateIf((o) => o.isRecurring === true)
-  @IsNotEmpty({ message: '반복 일정의 경우 반복 종료 날짜는 필수입니다.' })
-  @Type(() => Date)
-  @IsDate()
-  repeatEndDate?: Date = null
-
-  @ApiProperty({
-    description: '반복 간격 (일/주/월/년 단위)',
-    example: 1,
-    required: false,
-  })
-  @IsNumber()
+  @ValidateNested()
+  @Type(() => RecurringInfo)
   @IsOptional()
-  recurringInterval?: number
-
-  @ApiProperty({
-    description:
-      '주간 반복 시 반복할 요일 (0: 일요일, 1: 월요일, ..., 6: 토요일)',
-    example: [2, 4],
-    required: false,
-  })
-  @IsArray()
-  @IsOptional()
-  recurringDaysOfWeek?: number[] = null
-
-  @ApiProperty({
-    description: '월간 반복 시 반복할 날짜',
-    example: null,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  recurringDayOfMonth?: number = null
-
-  @ApiProperty({
-    description: '연간 반복 시 반복할 월 (1-12)',
-    example: null,
-    required: false,
-  })
-  @IsNumber()
-  @IsOptional()
-  recurringMonthOfYear?: number = null
+  recurringOptions?: RecurringInfo
 
   @ApiProperty({
     description: '그룹 정보 배열',

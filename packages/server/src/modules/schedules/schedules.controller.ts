@@ -52,7 +52,7 @@ export class SchedulesController {
     name: 'userUuid',
     required: false,
     type: String,
-    description: '사용자의 UUID',
+    description: '사용자의 UUID. 미입력시 본인 일정 조회',
   })
   @ApiQuery({
     name: 'date',
