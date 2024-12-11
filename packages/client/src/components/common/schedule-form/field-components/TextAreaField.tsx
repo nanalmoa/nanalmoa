@@ -1,30 +1,41 @@
-import { useFormContext } from 'react-hook-form'
-import BaseField from './BaseField'
+import { FieldError } from 'react-hook-form'
+import BaseSection from './BaseSection'
 
 type Prop = {
-  id: string
-  label: string
-  placeholder: string
+  label: string;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: FieldError;
+  /** 해당 필드가 필수 작성 필드일때 true */
+  required?: boolean
 }
 
-const TextAreaField = ({ id, label, placeholder }: Prop) => {
-  const { register } = useFormContext()
+const TextAreaField = ({ 
+  label, 
+  placeholder,
+  value,
+  onChange,
+  error,
+  required = false
+}: Prop) => {
 
   return (
-    <BaseField
-      id={id}
+    <BaseSection 
       label={label}
-      renderInput={() => (
-        <div className="w-full rounded border-2 border-neutral-300 p-3">
-          <textarea
-            id={id}
-            {...register(id)}
-            placeholder={placeholder}
-            className="h-20 w-full resize-none bg-transparent focus:outline-none"
-          ></textarea>
-        </div>
-      )}
-    />
+      currentLength={value.length}
+      error={error}
+      required={required}
+    >
+      <div className="w-full rounded border border-neutral-300 p-3 bg-white">
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className="h-20 w-full resize-none focus:outline-none"
+        ></textarea>
+      </div>
+    </BaseSection>
   )
 }
 

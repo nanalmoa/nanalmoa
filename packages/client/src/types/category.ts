@@ -1,3 +1,12 @@
+/**
+ * categoryId 순서대로 배치
+ * e.g.)
+ * 병원 categoryId = 1
+ * 가족 categoryId = 2
+ * 종교 categoryId = 3
+ * ...
+ */
+
 export enum CategoryEnum {
   병원 = 'bg-blue-500',
   가족 = 'bg-red-400',

@@ -1,5 +1,5 @@
 // import Select, { components } from 'react-select'
-// import BaseField from './BaseField'
+// import BaseSection from './BaseSection'
 // import { useState } from 'react'
 // import { useModal } from '@/hooks/use-modal'
 import { useFormContext } from 'react-hook-form'
@@ -60,7 +60,7 @@ const RepetitionField = () => {
         {isRecurring}
       </div>
       {/* <div className="hidden">{settedRepeatType}</div>
-      <BaseField
+      <BaseSection
         id="repitition"
         label="반복"
         renderInput={() => (

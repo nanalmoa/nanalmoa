@@ -1,4 +1,4 @@
-import BaseField from './BaseField'
+import BaseSection from './BaseSection'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import Select, { components, MenuProps, MultiValue } from 'react-select'
 
@@ -143,43 +143,39 @@ const GroupField = () => {
   const handleMenuClose = () => setMenuIsOpen(false)
 
   return (
-    <BaseField
-      id="group"
-      label="공유 그룹"
-      renderInput={() => (
-        <div className="w-full max-w-md">
-          <Select<User, true>
-            isMulti
-            options={users}
-            value={selectedUsers}
-            onChange={handleChange}
-            getOptionLabel={(option) => option.name}
-            getOptionValue={(option) => option.id}
-            placeholder="공유할 그룹원을 선택해주세요"
-            components={{ Menu: CustomMenu }}
-            menuIsOpen={menuIsOpen}
-            onMenuOpen={handleMenuOpen}
-            onMenuClose={handleMenuClose}
-            styles={{
-              control: (base) => ({
-                ...base,
-                borderColor: '#d1d5db',
-                boxShadow: 'none',
-                '&:hover': {
-                  borderColor: '#9ca3af',
-                },
-              }),
-              menu: (base) => ({
-                ...base,
-                marginTop: '4px',
-                boxShadow:
-                  '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-              }),
-            }}
-          />
-        </div>
-      )}
-    />
+    <BaseSection label="공유 그룹">
+      <div className="w-full max-w-md">
+        <Select<User, true>
+          isMulti
+          options={users}
+          value={selectedUsers}
+          onChange={handleChange}
+          getOptionLabel={(option) => option.name}
+          getOptionValue={(option) => option.id}
+          placeholder="공유할 그룹원을 선택해주세요"
+          components={{ Menu: CustomMenu }}
+          menuIsOpen={menuIsOpen}
+          onMenuOpen={handleMenuOpen}
+          onMenuClose={handleMenuClose}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderColor: '#d1d5db',
+              boxShadow: 'none',
+              '&:hover': {
+                borderColor: '#9ca3af',
+              },
+            }),
+            menu: (base) => ({
+              ...base,
+              marginTop: '4px',
+              boxShadow:
+                '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+            }),
+          }}
+        />
+      </div>
+    </BaseSection>
   )
 }
 
