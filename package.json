@@ -13,6 +13,7 @@
     "start:server": "yarn workspace server start:dev",
     "build:client": "yarn workspace client build",
     "build:server": "yarn workspace server build",
+    "preview:client": "yarn workspace client preview",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "check-format": "prettier --check .",
     "lint:all": "yarn eslint --fix",

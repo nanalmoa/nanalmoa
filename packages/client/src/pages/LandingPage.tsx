@@ -1,4 +1,4 @@
-import landingLogo from '@/assets/logo/landingLogo.svg'
+import landingLogo from '@/assets/svgs/landing-logo.svg'
 import { useUser } from '@/hooks/use-user'
 import { path } from '@/routes/path'
 import { cn } from '@/utils/cn'

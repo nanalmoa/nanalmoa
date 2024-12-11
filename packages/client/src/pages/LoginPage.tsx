@@ -1,6 +1,6 @@
 import { postLogin } from '@/api/auth/post-login'
-import kakaoLogin from '@/assets/imgs/kakaoLogin.png'
-import naverLogin from '@/assets/imgs/naverLogin.png'
+import kakaoLogin from '@/assets/imgs/kakao-login.png'
+import naverLogin from '@/assets/imgs/naver-login.png'
 import { Button, PhoneNumberInput } from '@/components/common'
 import Divider from '@/components/common/Divider'
 import Toast from '@/components/common/Toast'

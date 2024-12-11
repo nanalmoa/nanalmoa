@@ -1,4 +1,4 @@
-import logo from '@/assets/logo/logo.svg'
+import logo from '@/assets/svgs/logo.svg'
 import { path } from '@/routes/path'
 import { cn } from '@/utils/cn'
 import { Link } from 'react-router-dom'
