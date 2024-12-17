@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm'
+import { User } from './user.entity'
 
 export enum InvitationStatus {
   PENDING = 'PENDING', // 초대가 발송되었지만, 아직 응답하지 않은 상태
@@ -21,10 +24,10 @@ export class ManagerInvitation {
   @PrimaryGeneratedColumn({ name: 'manager_invitation_id' })
   managerInvitationId: number
 
-  @Column({ name: 'manager_uuid', type: 'varchar' })
+  @Column({ name: 'manager_uuid', type: 'uuid' })
   managerUuid: string
 
-  @Column({ name: 'subordinate_uuid', type: 'varchar' })
+  @Column({ name: 'subordinate_uuid', type: 'uuid' })
   subordinateUuid: string
 
   @Column({
@@ -40,4 +43,12 @@ export class ManagerInvitation {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date
+
+  @ManyToOne(() => User, (user) => user.sentManagerInvitations)
+  @JoinColumn({ name: 'manager_uuid', referencedColumnName: 'userUuid' })
+  manager: User
+
+  @ManyToOne(() => User, (user) => user.receivedManagerInvitations)
+  @JoinColumn({ name: 'subordinate_uuid', referencedColumnName: 'userUuid' })
+  subordinate: User
 }

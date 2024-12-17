@@ -221,7 +221,7 @@ export class ManagerService {
   }
 
   private async createManagerSubordinate(
-    invitation: ManagerInvitation,
+    invitation: CreateInvitationDto,
   ): Promise<void> {
     try {
       const managerSubordinate = this.managerSubordinateRepository.create({
