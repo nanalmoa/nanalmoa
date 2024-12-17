@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common'
 import { CreateGroupDto } from './dto/create-group.dto'
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm'
-import { DataSource, In, QueryRunner, Repository } from 'typeorm'
+import { DataSource, In, Repository } from 'typeorm'
 import { Group } from '@/entities/group.entity'
 import { UserGroup } from '@/entities/user-group.entity'
 import { GroupInfoResponseDto } from './dto/response-group.dto'
@@ -38,6 +38,8 @@ export class GroupService {
     private groupInvitationRepository: Repository<GroupInvitation>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectDataSource()
+    private dataSource: DataSource,
     private usersService: UsersService,
     @InjectRepository(GroupSchedule)
     private groupScheduleRepository: Repository<GroupSchedule>,
@@ -183,24 +185,26 @@ export class GroupService {
       throw new ForbiddenException('현재 수신 중인 초대만 수락할 수 있습니다.')
     }
 
-    invitation.status = InvitationStatus.ACCEPTED
-    await this.groupInvitationRepository.save(invitation)
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      invitation.status = InvitationStatus.ACCEPTED
+      await transactionalEntityManager.save(invitation)
 
-    const group = await this.groupRepository.findOne({
-      where: { groupId: invitation.group.groupId },
+      const group = await transactionalEntityManager.findOne(Group, {
+        where: { groupId: invitation.group.groupId },
+      })
+
+      if (!group) {
+        throw new NotFoundException(
+          `해당 그룹 ID : ${invitation.group.groupId} 를 가진 그룹은 없습니다.`,
+        )
+      }
+
+      const userGroup = new UserGroup()
+      userGroup.userUuid = invitation.inviteeUuid
+      userGroup.group = group
+      userGroup.isAdmin = false
+      await transactionalEntityManager.save(userGroup)
     })
-
-    if (!group) {
-      throw new NotFoundException(
-        `해당 그룹 ID : ${invitation.group.groupId} 를 가진 그룹은 없습니다.`,
-      )
-    }
-
-    const userGroup = new UserGroup()
-    userGroup.userUuid = invitation.inviteeUuid
-    userGroup.group = group
-    userGroup.isAdmin = false
-    await this.userGroupRepository.save(userGroup)
 
     return { message: '초대가 성공적으로 수락되었습니다.' }
   }
@@ -288,6 +292,7 @@ export class GroupService {
 
     return invitation
   }
+
   async deleteGroup(groupId: number, adminUuid: string): Promise<void> {
     const group = await this.groupRepository.findOne({
       where: { groupId },
@@ -306,15 +311,17 @@ export class GroupService {
       throw new ForbiddenException('그룹 관리자만이 그룹을 삭제할 수 있습니다.')
     }
 
-    await this.groupInvitationRepository.delete({
-      group: { groupId },
-    })
+    await this.dataSource.transaction(async (transactionalEntityManager) => {
+      await transactionalEntityManager.delete(GroupInvitation, {
+        group: { groupId },
+      })
 
-    await this.userGroupRepository.delete({
-      group: { groupId },
-    })
+      await transactionalEntityManager.delete(UserGroup, {
+        group: { groupId },
+      })
 
-    await this.groupRepository.delete({ groupId })
+      await transactionalEntityManager.delete(Group, { groupId })
+    })
   }
 
   async getUserGroups(userUuid: string): Promise<GroupInfoResponseDto[]> {
@@ -523,6 +530,7 @@ export class GroupService {
       status: invitation.status,
     }
   }
+
   async linkScheduleToGroupsAndUsers(
     schedule: Schedule,
     groupInfo: GroupInfo[],
@@ -577,6 +585,7 @@ export class GroupService {
       isAdmin: userGroups.find((ug) => ug.userUuid === user.userUuid).isAdmin,
     }))
   }
+
   async removeGroupMembersFromSchedule(
     scheduleId: number,
     groupInfo: GroupInfo[],

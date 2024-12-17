@@ -246,11 +246,9 @@ export class OCRTranscriptionService {
       schedule.isAllDay = false
       schedule.categoryId = 6 // 약 복용 카테고리 ID
       schedule.isRecurring = true
-      schedule.recurringOptions = {
-        repeatType: 'daily',
-        repeatEndDate: new Date(endDate),
-        recurringInterval: 1,
-      }
+      schedule.repeatType = 'daily'
+      schedule.repeatEndDate = new Date(endDate)
+      schedule.recurringInterval = 1
 
       schedules.push(schedule)
     })

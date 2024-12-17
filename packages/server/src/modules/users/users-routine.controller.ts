@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Put,
+  Req,
   UseGuards,
   BadRequestException,
 } from '@nestjs/common'
@@ -18,7 +19,7 @@ import { UsersRoutineService } from './users-routine.service'
 import { UserRoutineResponseDto } from './dto/response-user-routine.dto'
 import { UpdateUserRoutineDto } from './dto/update-user-routine.dto'
 import { AuthGuard } from '@nestjs/passport'
-import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
+import { Request } from 'express'
 
 @ApiTags('Users-Routine')
 @Controller('users-routine')
@@ -39,9 +40,13 @@ export class UsersRoutineController {
   })
   @ApiUnauthorizedResponse({ description: '인증되지 않은 사용자' })
   async updateUserRoutine(
-    @GetUserUuid() userUuid: string,
+    @Req() req: Request,
     @Body() updateDto: UpdateUserRoutineDto,
   ): Promise<UserRoutineResponseDto> {
+    const userUuid = req.user['userUuid']
+    if (!userUuid) {
+      throw new BadRequestException('사용자 UUID가 필요합니다.')
+    }
     try {
       return await this.usersRoutineService.updateUserRoutine(
         userUuid,
@@ -72,9 +77,11 @@ export class UsersRoutineController {
     description: '잘못된 요청 (예: 유효하지 않은 UUID)',
   })
   @ApiUnauthorizedResponse({ description: '인증되지 않은 사용자' })
-  async getUserRoutine(
-    @GetUserUuid() userUuid: string,
-  ): Promise<UserRoutineResponseDto> {
+  async getUserRoutine(@Req() req: Request): Promise<UserRoutineResponseDto> {
+    const userUuid = req.user['userUuid']
+    if (!userUuid) {
+      throw new BadRequestException('사용자 UUID가 필요합니다.')
+    }
     try {
       return await this.usersRoutineService.getUserRoutine(userUuid)
     } catch (error) {

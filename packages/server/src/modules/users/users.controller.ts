@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   UseGuards,
+  Req,
   Post,
   Body,
   BadRequestException,
@@ -30,7 +31,6 @@ import { AuthService } from '@/auth/auth.service'
 import { DataSource, Repository } from 'typeorm'
 import { AuthProvider } from '@/entities/auth.entity'
 import { InjectDataSource } from '@nestjs/typeorm'
-import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
 
 @ApiTags('Users')
 @Controller('users')
@@ -53,7 +53,8 @@ export class UsersController {
     schema: UserResponseSchema,
   })
   @ApiResponse({ status: 401, description: '인증되지 않은 사용자' })
-  async getCurrentUser(@GetUserUuid() userUuid: string) {
+  async getCurrentUser(@Req() req) {
+    const userUuid = req.user.userUuid
     return this.usersService.getUserByUuid(userUuid)
   }
 
@@ -90,10 +91,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: '회원정보 수정 성공' })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   @ApiResponse({ status: 401, description: '인증 실패' })
-  async updateUserInfo(
-    @GetUserUuid() userUuid: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
+  async updateUserInfo(@Req() req, @Body() updateUserDto: UpdateUserDto) {
+    const userUuid = req.user.userUuid
     const { name, phoneNumber, email, address } = updateUserDto
 
     const currentUser = await this.usersService.getUserByUuid(userUuid)
@@ -142,9 +141,9 @@ export class UsersController {
   @ApiResponse({ status: 401, description: '인증 실패' })
   @ApiResponse({ status: 404, description: '사용자를 찾을 수 없음' })
   @ApiResponse({ status: 500, description: '서버 오류' })
-  async deleteAccount(
-    @GetUserUuid() userUuid: string,
-  ): Promise<{ message: string }> {
+  async deleteAccount(@Req() req): Promise<{ message: string }> {
+    const userUuid = req.user.userUuid
+
     const queryRunner = this.dataSource.createQueryRunner()
 
     await queryRunner.connect()
