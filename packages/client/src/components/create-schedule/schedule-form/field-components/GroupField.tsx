@@ -6,8 +6,10 @@ import { GroupMember } from '@/types/group'
 import { QUERY_KEYS } from '@/constants/api'
 import { getGroupUser } from '@/api/group/get-group-user'
 import { getGroupDetail } from '@/api/group/get-group-detail'
+import { toast } from 'react-toastify'
 
 const CustomMenu = (props: MenuProps<GroupMember, true>) => {
+  // 현재 선택된 그룹 id
   const [selectedGroupId, setSelectedGroupId] = useState(0);
 
   /** 내 그룹 조회 */
@@ -77,15 +79,16 @@ const CustomMenu = (props: MenuProps<GroupMember, true>) => {
                         key={member.userUuid}
                         className={`flex cursor-pointer items-center p-2 ${
                           (props.getValue()).some((v) => v.userUuid === member.userUuid)
-                            ? 'bg-green-100'
+                            ? 'bg-red-100'
                             : ''
                         }`}
                         onClick={() => {
                           const currentValue = props.getValue()
-                          const newValue = currentValue.some((v) => v.userUuid === member.userUuid)
-                            ? currentValue.filter((v) => v.userUuid !== member.userUuid)
-                            : [...currentValue, member]
-                          props.setValue(newValue, 'select-option')
+                          if (currentValue.some((v) => v.userUuid === member.userUuid)) {
+                            toast.error("이미 선택된 그룹원입니다!")
+                            return
+                          }
+                          props.setValue([...currentValue, member], 'select-option')
                         }}
                       >
                         <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-300">
@@ -106,10 +109,10 @@ const CustomMenu = (props: MenuProps<GroupMember, true>) => {
 }
 
 const GroupField = () => {
+  const prevSelectedMembersRef = useRef<GroupMember[]>([])
+
   const [menuIsOpen, setMenuIsOpen] = useState(false)
   const [selectedMembers, setSelectedMembers] = useState<MultiValue<GroupMember>>([])
-
-  const prevSelectedMembersRef = useRef<GroupMember[]>([])
 
   const handleChange = useCallback((newValue: MultiValue<GroupMember>) => {
     const newSelectedMembers = newValue as GroupMember[]
