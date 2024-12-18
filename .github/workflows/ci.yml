@@ -1,13 +1,13 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 # 워크플로우가 실행될 조건 설정
 on:
-  # main 또는 develop 브랜치에 push가 발생했을 때
-  push:
-    branches: [main, develop]
-  # main 또는 develop 브랜치로 PR이 생성/수정되었을 때
+  # main 또는 release 브랜치에 push가 발생했을 때
+  # push:
+  #   branches: [main, release]
+  # main 또는 release 브랜치로 PR이 생성/수정되었을 때
   pull_request:
-    branches: [main, develop]
+    branches: [main, release]
 
 jobs:
   # 변경된 파일을 감지하는 작업
@@ -62,8 +62,6 @@ jobs:
       - name: Build Client
         run: yarn build:client
 
-      # 여기에 클라이언트 배포 관련 스텝 추가해야함.
-
   # 서버 빌드 작업
   server:
     needs: detect-changes
@@ -81,5 +79,3 @@ jobs:
 
       - name: Build Server
         run: yarn build:server
-
-      # 여기에 서버 배포 관련 스텝 추가해야함.
