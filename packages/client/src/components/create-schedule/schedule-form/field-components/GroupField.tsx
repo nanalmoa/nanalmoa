@@ -145,7 +145,7 @@ const GroupField = () => {
 
   return (
     <BaseSection label="공유 그룹">
-      <div className="w-full max-w-md">
+      <div className="w-full">
         <Select<GroupMember, true>
           isMulti
           value={selectedMembers}
@@ -157,21 +157,11 @@ const GroupField = () => {
           menuIsOpen={menuIsOpen}
           onMenuOpen={handleMenuOpen}
           onMenuClose={handleMenuClose}
-          styles={{
-            control: (base) => ({
-              ...base,
-              borderColor: '#d1d5db',
-              boxShadow: 'none',
-              '&:hover': {
-                borderColor: '#9ca3af',
-              },
-            }),
-            menu: (base) => ({
-              ...base,
-              marginTop: '4px',
-              boxShadow:
-                '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-            }),
+          className="w-full"
+          classNames={{
+            control: ({ isFocused }) =>
+              `border ${isFocused ? 'border-neutral-400' : 'border-neutral-300'} shadow-none hover:border-neutral-400`,
+            menu: () => 'mt-1 shadow-sm',
           }}
         />
       </div>
