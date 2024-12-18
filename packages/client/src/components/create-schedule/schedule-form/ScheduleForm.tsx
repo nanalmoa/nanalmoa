@@ -6,12 +6,11 @@ import CategoryField from './field-components/CategoryField'
 import DateTimeField from './field-components/DateTimeField'
 import TextAreaField from './field-components/TextAreaField'
 import TextInputField from './field-components/TextInputField'
-// import GroupField from './field-components/GroupField'
+import GroupField from './field-components/GroupField'
 // import RepetitionField from './field-components/RepetitionField'
 import { addDays, setHours, setMilliseconds, setMinutes, setSeconds, startOfToday } from 'date-fns'
 import ToggleField from './field-components/ToggleField'
 import BaseSection from './field-components/BaseSection'
-// import GroupField from './field-components/GroupField'
 
 type Props = {
   defaultValue?: Partial<ISchedule>
@@ -47,7 +46,7 @@ const ScheduleForm = ({
     const payload = {
       ...data,
       title: data.title ? data.title : '새로운 일정',
-    } as IPartialScheduleForm
+    } as IPartialScheduleForm;
 
     onSubmit(payload)
   }
@@ -80,7 +79,7 @@ const ScheduleForm = ({
         isRecurring: defaultValue.isRecurring,
       })
     }
-  }, [defaultValue])
+  }, [defaultValue, formScheduleCreate])
 
   return (
     <FormProvider {...formScheduleCreate}>
@@ -212,7 +211,7 @@ const ScheduleForm = ({
                 )}
               />
 
-              {/* <GroupField /> */}
+              <GroupField />
               {/* <RepetitionField /> */}
 
               <Controller

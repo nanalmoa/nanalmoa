@@ -17,13 +17,15 @@ export interface PostInviteReq {
   inviteeUuids: string[]
 }
 
+export interface GroupMember {
+  userUuid: string
+  name: string
+  isAdmin: boolean
+  joinedAt: Date
+}
+
 export interface GetGroupDetail extends GetGroupUserRes {
-  members: {
-    userUuid: string
-    name: string
-    isAdmin: boolean
-    joinedAt: Date
-  }[]
+  members: GroupMember[]
 }
 
 export enum GroupInvitationEnum {
