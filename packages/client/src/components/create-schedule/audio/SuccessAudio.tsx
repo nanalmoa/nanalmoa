@@ -1,7 +1,7 @@
 import { postSchedules } from '@/api/schedules/post-schedules'
 import success from '@/assets/imgs/success.png'
 import { Button } from '@/components/common'
-import ScheduleForm from '@/components/common/schedule-form/ScheduleForm'
+import ScheduleForm from '@/components/create-schedule/schedule-form/ScheduleForm'
 import { QUERY_KEYS } from '@/constants/api'
 import { useModal } from '@/hooks/use-modal'
 import { useUser } from '@/hooks/use-user'

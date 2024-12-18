@@ -1,7 +1,7 @@
 import { postSchedules } from '@/api/schedules/post-schedules'
 import { Stepper } from '@/components/common'
 import SuccessPostAudio from '@/components/create-schedule/audio/SuccessPostAudio'
-import ScheduleForm from '@/components/common/schedule-form/ScheduleForm'
+import ScheduleForm from '@/components/create-schedule/schedule-form/ScheduleForm'
 import { QUERY_KEYS } from '@/constants/api'
 import { createManualScheduleSteps } from '@/constants/schedules'
 import { useUser } from '@/hooks/use-user'

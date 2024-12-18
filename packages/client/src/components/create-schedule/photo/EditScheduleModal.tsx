@@ -1,5 +1,5 @@
 import Modal from '@/components/common/Modal'
-import ScheduleForm from '@/components/common/schedule-form/ScheduleForm'
+import ScheduleForm from '@/components/create-schedule/schedule-form/ScheduleForm'
 import { TModal } from '@/types/common'
 import { IMediaAnalysisResult, PostSchedulesReq } from '@/types/schedules'
 

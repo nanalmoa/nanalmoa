@@ -1,6 +1,6 @@
 import { FieldError } from 'react-hook-form'
 import BaseSection from './BaseSection'
-import { Input } from '../..'
+import { Input } from '../../../common'
 import { cn } from '@/utils/cn'
 
 type Props = {

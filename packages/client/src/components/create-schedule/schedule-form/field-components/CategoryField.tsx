@@ -1,4 +1,4 @@
-import CategoryTag from '../../CategoryTag'
+import CategoryTag from '../../../common/CategoryTag'
 import { Categories, CategoryEnum } from '@/types/category'
 import Select, { components } from 'react-select'
 import './react-select.css'
