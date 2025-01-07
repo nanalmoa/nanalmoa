@@ -7,9 +7,21 @@ export type RecurringOptionValue =
   | 'monthly'
   | 'yearly'
 
-export interface IGroup {
+export interface IGroupReq {
   groupId: number
   userUuids: string[]
+}
+
+export interface IGroupRes {
+  groupId: number
+  groupName: string
+  users: {
+    userUuid: number
+    name: string
+    profileImage: string
+    email: string
+    phoneNumber: string
+  }[]
 }
 
 export interface ICategory {
@@ -23,7 +35,7 @@ export interface IRepeatInfo {
   recurringDaysOfWeek?: number[] | null
   recurringDayOfMonth?: number | null
   recurringMonthOfYear?: number | null
-  groupInfo?: Array<IGroup>
+  // groupInfo?: Array<IGroupReq>
 }
 
 export interface ISchedule extends IRepeatInfo {
@@ -37,6 +49,7 @@ export interface ISchedule extends IRepeatInfo {
   isAllDay: boolean
   category: ICategory
   isRecurring: boolean;
+  groupInfo?: Array<IGroupRes>
 }
 
 export interface IMediaAnalysisResult extends IRepeatInfo {
@@ -72,6 +85,7 @@ export interface IPartialScheduleForm extends IRepeatInfo {
   categoryId: number
   isRecurring: boolean
   repeatType: RecurringOptionValue
+  groupInfo?: Array<IGroupReq>
 }
 
 export interface PostSchedulesReq extends IRepeatInfo {
@@ -84,13 +98,14 @@ export interface PostSchedulesReq extends IRepeatInfo {
   categoryId: number
   isRecurring: boolean
   repeatType?: RecurringOptionValue
+  groupInfo?: Array<IGroupReq>
 }
 
 export interface PostSchedulesRes extends ISchedule {
   isGroupSchedule: boolean
 }
 
-export interface UpdateScheduleReq {
+export interface UpdateScheduleReq extends IRepeatInfo {
   categoryId?: number
   startDate?: Date
   endDate?: Date
@@ -99,6 +114,7 @@ export interface UpdateScheduleReq {
   memo?: string
   isAllDay?: boolean
   isRecurring?: boolean
+  groupInfo?: Array<IGroupReq>
 }
 
 export interface UpdateScheduleRes extends ISchedule {}

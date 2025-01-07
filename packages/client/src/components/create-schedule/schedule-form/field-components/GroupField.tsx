@@ -7,12 +7,12 @@ import { QUERY_KEYS } from '@/constants/api'
 import { getGroupUser } from '@/api/group/get-group-user'
 import { getGroupDetail } from '@/api/group/get-group-detail'
 import { toast } from 'react-toastify'
-import { IGroup } from '@/types/schedules'
+import { IGroupReq } from '@/types/schedules'
 import { FieldError } from 'react-hook-form'
 
 type Props = {
-  value?: IGroup[]
-  onChange: (value: IGroup[]) => void
+  value?: IGroupReq[]
+  onChange: (value: IGroupReq[]) => void
   error?: FieldError
   /** 해당 필드가 필수 작성 필드일때 true */
   required?: boolean
@@ -29,7 +29,7 @@ const GroupField = ({ value, onChange }: Props) => {
     MultiValue<GroupMember>
   >([])
   // payload에 담을 group member 배열
-  const [selectedGroupData, setSelectedGroupData] = useState<IGroup[]>(
+  const [selectedGroupData, setSelectedGroupData] = useState<IGroupReq[]>(
     value || [],
   )
 
