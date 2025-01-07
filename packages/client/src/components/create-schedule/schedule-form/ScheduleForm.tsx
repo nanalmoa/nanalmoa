@@ -48,7 +48,7 @@ const ScheduleForm = ({
       title: data.title ? data.title : '새로운 일정',
     } as IPartialScheduleForm;
 
-    onSubmit(payload)
+    onSubmit(payload);
   }
 
   /** 종일 옵션 선택 시, 시작 날짜의 시간을 자정으로 변환하는 함수 */
@@ -211,7 +211,18 @@ const ScheduleForm = ({
                 )}
               />
 
-              <GroupField />
+              <Controller
+                control={formScheduleCreate.control}
+                name="groupInfo"
+                render={({ field: { value, onChange }, fieldState: { error } }) => (
+                  <GroupField
+                    value={value}
+                    onChange={onChange}
+                    error={error}
+                  />
+                )}
+              />
+              
               {/* <RepetitionField /> */}
 
               <Controller

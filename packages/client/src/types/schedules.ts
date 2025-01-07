@@ -62,7 +62,7 @@ export interface PostUploadAudioFileReq {
 
 export interface PostUploadAudioFileRes extends Array<IMediaAnalysisResult> {}
 
-export interface IPartialScheduleForm {
+export interface IPartialScheduleForm extends IRepeatInfo {
   startDate: Date
   endDate: Date
   title: string
@@ -78,12 +78,12 @@ export interface PostSchedulesReq extends IRepeatInfo {
   startDate: Date
   endDate: Date
   title: string
-  place: string
+  place?: string
   memo?: string
   isAllDay: boolean
   categoryId: number
   isRecurring: boolean
-  repeatType: RecurringOptionValue
+  repeatType?: RecurringOptionValue
 }
 
 export interface PostSchedulesRes extends ISchedule {
