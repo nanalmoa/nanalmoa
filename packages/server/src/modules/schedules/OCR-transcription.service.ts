@@ -8,7 +8,7 @@ import { SchedulesService } from './schedules.service'
 import { CreateScheduleDto } from './dto/create-schedule.dto'
 import { UsersRoutineService } from '../users/users-routine.service'
 import { UserRoutineResponseDto } from '../users/dto/response-user-routine.dto'
-import { Multer } from 'multer'
+import { AiService } from './ai.service'
 
 @Injectable()
 export class OCRTranscriptionService {
@@ -20,6 +20,8 @@ export class OCRTranscriptionService {
     @Inject(forwardRef(() => SchedulesService))
     private scheduleService: SchedulesService,
     private usersRoutineService: UsersRoutineService,
+    @Inject(forwardRef(() => AiService))
+    private aiService: AiService,
   ) {
     this.client = new ImageAnnotatorClient(this.getCredentials())
   }
@@ -133,8 +135,8 @@ export class OCRTranscriptionService {
     })
 
     const gptResponseContent = gptResponse.choices[0].message.content
-    console.log(this.scheduleService.parseGptResponse(gptResponseContent))
-    return this.scheduleService.parseGptResponse(gptResponseContent)
+    console.log(this.aiService.parseGptResponse(gptResponseContent))
+    return this.aiService.parseGptResponse(gptResponseContent)
   }
 
   private async extractMedicationInfo(

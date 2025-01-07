@@ -7,7 +7,6 @@ import {
   IsEnum,
   IsNumber,
   IsArray,
-  ValidateIf,
   IsUUID,
   ValidateNested,
 } from 'class-validator'

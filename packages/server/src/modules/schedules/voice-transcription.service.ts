@@ -5,7 +5,6 @@ import { lastValueFrom } from 'rxjs'
 import * as jwt from 'jsonwebtoken'
 import FormData from 'form-data'
 import OpenAI from 'openai'
-import { Multer } from 'multer'
 @Injectable()
 export class VoiceTranscriptionService {
   private openai: OpenAI
@@ -14,12 +13,7 @@ export class VoiceTranscriptionService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-  ) {
-    const openaiApiKey = this.configService.get<string>('OPENAI_API_KEY')
-    this.openai = new OpenAI({
-      apiKey: openaiApiKey,
-    })
-  }
+  ) {}
 
   // RTZR 토큰 만료 검사 로직
   private isRTZRTokenExpiredOrCloseToExpiry(
