@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty, IsString } from 'class-validator'
-import { AuthProvider } from 'src/entities/auth.entity'
 
 export class RefreshTokenDto {
   @ApiProperty({

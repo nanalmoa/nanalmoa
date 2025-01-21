@@ -16,7 +16,6 @@ import {
   ApiResponse,
   ApiBody,
   ApiQuery,
-  ApiBearerAuth,
 } from '@nestjs/swagger'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthService } from './auth.service'
@@ -31,17 +30,11 @@ import {
   BasicSignupResponseSchema,
   KakaoLoginResponseSchema,
   NaverLoginResponseSchema,
-  RefreshTokenResponseSchema,
   SendVerificationCodeResponseSchema,
   SendVerificationCodeErrorSchema,
   VerifyCodeResponseSchema,
   VerifyCodeErrorSchema,
   RefreshTokenErrorSchema,
-  NaverTokenResponseSchema,
-  KakaoTokenResponseSchema,
-  RefreshBasicTokenResponseSchema,
-  RefreshNaverTokenResponseSchema,
-  RefreshKakaoTokenResponseSchema,
   RefreshAccessTokenResponseSchema,
 } from './schema/response.schema'
 import { VerifyCodeDto } from './dto/verify-code.dto'

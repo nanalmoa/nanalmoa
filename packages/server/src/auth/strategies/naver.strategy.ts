@@ -20,11 +20,12 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
     accessToken: string,
     refreshToken: string,
     profile: any,
-    done: Function,
+    done: (error: any, user?: any) => void,
   ): Promise<any> {
     try {
       const { id, emails, displayName, _json } = profile
       const user = {
+        id,
         provider: AuthProvider.NAVER,
         providerId: id,
         email: emails[0].value,
@@ -40,6 +41,7 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
 
       done(null, validatedUser)
     } catch (error) {
+      console.error('Naver auth error:', error)
       done(new UnauthorizedException('네이버 인증 실패'), false)
     }
   }

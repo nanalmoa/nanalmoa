@@ -10,7 +10,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import axios from 'axios'
 import { Auth, AuthProvider } from 'src/entities/auth.entity'
 import { User } from 'src/entities/user.entity'
-import { MoreThan, Repository } from 'typeorm'
+import { Repository } from 'typeorm'
 import { v4 as uuidv4 } from 'uuid'
 import { CoolSmsService } from './coolsms.service'
 import { ConfigService } from '@nestjs/config'
@@ -27,6 +27,8 @@ import {
 import * as nodemailer from 'nodemailer'
 import * as path from 'path'
 import * as fs from 'fs'
+import { KakaoUserResponse } from './types/kakao-user-response.interface'
+import { NaverUserResponse } from './types/naver-user-response.interface'
 @Injectable()
 export class AuthService {
   constructor(
@@ -244,7 +246,11 @@ export class AuthService {
       )
       return result
     } catch (error) {
-      console.error('인증 코드 전송 실패:', error)
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       // 전송 실패 시 저장된 코드 삭제
       this.verificationCodes.delete(phoneNumber)
       return false
@@ -304,11 +310,16 @@ export class AuthService {
         refresh_token: response.data.refresh_token,
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       throw new UnauthorizedException('네이버 토큰 획득에 실패했습니다.')
     }
   }
 
-  async getNaverUserInfo(accessToken: string): Promise<any> {
+  async getNaverUserInfo(accessToken: string): Promise<NaverUserResponse> {
     const userInfoUrl = 'https://openapi.naver.com/v1/nid/me'
     try {
       const response = await axios.get(userInfoUrl, {
@@ -316,6 +327,11 @@ export class AuthService {
       })
       return response.data.response
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       throw new UnauthorizedException('네이버 사용자 정보 획득에 실패했습니다.')
     }
   }
@@ -338,6 +354,11 @@ export class AuthService {
         refresh_token: response.data.refresh_token,
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       throw new UnauthorizedException('네이버 토큰 갱신에 실패했습니다.')
     }
   }
@@ -359,11 +380,16 @@ export class AuthService {
         refresh_token: response.data.refresh_token,
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       throw new UnauthorizedException('카카오 토큰 획득에 실패했습니다.')
     }
   }
 
-  async getKakaoUserInfo(accessToken: string): Promise<any> {
+  async getKakaoUserInfo(accessToken: string): Promise<KakaoUserResponse> {
     const userInfoUrl = 'https://kapi.kakao.com/v2/user/me'
     try {
       const response = await axios.get(userInfoUrl, {
@@ -371,6 +397,11 @@ export class AuthService {
       })
       return response.data
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       throw new UnauthorizedException('카카오 사용자 정보 획득에 실패했습니다.')
     }
   }
@@ -393,12 +424,17 @@ export class AuthService {
         refresh_token: response.data.refresh_token, // 새 리프레시 토큰 발급
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       throw new UnauthorizedException('카카오 토큰 갱신에 실패했습니다.')
     }
   }
 
   async findOrCreateSocialUser(
-    socialUser: any,
+    socialUser: NaverUserResponse | KakaoUserResponse,
     refreshToken: string,
     provider: AuthProvider,
   ): Promise<User> {
@@ -406,19 +442,19 @@ export class AuthService {
 
     if (provider === AuthProvider.KAKAO) {
       oauthId = socialUser.id.toString()
-      name = socialUser.properties?.nickname
-      email = socialUser.kakao_account?.email
-      profileImage = socialUser.properties?.profile_image
+      name = socialUser.name
+      email = socialUser.email
+      profileImage = socialUser.profileImage
     } else if (provider === AuthProvider.NAVER) {
       oauthId = socialUser.id
       name = socialUser.name
       email = socialUser.email
-      profileImage = socialUser.profile_image
+      profileImage = socialUser.profileImage
     } else {
       throw new UnauthorizedException('지원하지 않는 소셜 프로바이더입니다.')
     }
 
-    let auth = await this.authRepository.findOne({
+    const auth = await this.authRepository.findOne({
       where: {
         oauthId: oauthId,
         authProvider: provider,
@@ -469,7 +505,7 @@ export class AuthService {
   }
 
   async createSocialUser(
-    socialUser: any,
+    socialUser: NaverUserResponse | KakaoUserResponse,
     refreshToken: string,
     provider: AuthProvider,
   ): Promise<User> {
@@ -551,6 +587,11 @@ export class AuthService {
         refreshToken: newTokens.refresh_token,
       }
     } catch (error) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error('unknown error', error)
+      }
       await this.authRepository.update(auth.authId, { refreshToken: null })
       throw new UnauthorizedException('토큰 갱신에 실패했습니다.')
     }

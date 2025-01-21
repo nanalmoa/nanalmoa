@@ -27,7 +27,7 @@ import {
 import { User } from '@/entities/user.entity'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { AuthService } from '@/auth/auth.service'
-import { DataSource, Repository } from 'typeorm'
+import { DataSource } from 'typeorm'
 import { AuthProvider } from '@/entities/auth.entity'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
