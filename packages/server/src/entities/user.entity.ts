@@ -17,6 +17,7 @@ import { GroupSchedule } from './group-schedule.entity'
 import { UserGroup } from './user-group.entity'
 import { ManagerSubordinate } from './manager-subordinate.entity'
 import { ManagerInvitation } from './manager-invitation.entity'
+import { Invitation } from './invitation.entity'
 
 @Entity('user')
 export class User {
@@ -101,4 +102,10 @@ export class User {
 
   @OneToMany(() => ManagerInvitation, (invitation) => invitation.subordinate)
   receivedManagerInvitations?: ManagerInvitation[]
+
+  @OneToMany(() => Invitation, (invitation) => invitation.inviter)
+  sentInvitations: Invitation[]
+
+  @OneToMany(() => Invitation, (invitation) => invitation.invitee)
+  receivedInvitations: Invitation[]
 }

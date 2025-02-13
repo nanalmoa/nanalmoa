@@ -438,4 +438,49 @@ export class ManagerService {
       )
     }
   }
+
+  /**
+   * 기존 매니저-부하직원 관계 검증
+   */
+  async validateExistingManagerRelation(
+    managerUuid: string,
+    subordinateUuid: string,
+  ): Promise<void> {
+    const existingRelation = await this.managerSubordinateRepository.findOne({
+      where: {
+        managerUuid,
+        subordinateUuid,
+      },
+    })
+
+    if (existingRelation) {
+      throw new BadRequestException('이미 매니저-부하직원 관계가 존재합니다.')
+    }
+  }
+
+  /**
+   * 매니저-부하직원 관계 생성
+   * @param managerUuid 매니저 UUID
+   * @param subordinateUuid 부하직원 UUID
+   */
+  async createManagerSubordinateRelation(
+    managerUuid: string,
+    subordinateUuid: string,
+  ): Promise<ManagerSubordinate> {
+    this.validateExistingManagerRelation(managerUuid, subordinateUuid)
+
+    // 매니저와 부하직원 존재 확인
+    await Promise.all([
+      this.usersService.getUserByUuid(managerUuid),
+      this.usersService.getUserByUuid(subordinateUuid),
+    ])
+
+    // 새로운 관계 생성
+    const managerSubordinate = this.managerSubordinateRepository.create({
+      managerUuid,
+      subordinateUuid,
+    })
+
+    return await this.managerSubordinateRepository.save(managerSubordinate)
+  }
 }
