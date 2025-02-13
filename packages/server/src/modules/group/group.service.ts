@@ -7,8 +7,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common'
 import { CreateGroupDto } from './dto/create-group.dto'
-import { InjectDataSource, InjectRepository } from '@nestjs/typeorm'
-import { DataSource, In, QueryRunner, Repository } from 'typeorm'
+import { InjectRepository } from '@nestjs/typeorm'
+import { In, Repository } from 'typeorm'
 import { Group } from '@/entities/group.entity'
 import { UserGroup } from '@/entities/user-group.entity'
 import { GroupInfoResponseDto } from './dto/response-group.dto'
@@ -611,5 +611,93 @@ export class GroupService {
         }
       }
     }
+  }
+
+  /**
+   * 기존 그룹 관계 검증
+   */
+  async validateExistingGroupRelation(
+    groupId: number,
+    userUuid: string,
+  ): Promise<void> {
+    const existingMember = await this.userGroupRepository.findOne({
+      where: {
+        group: { groupId },
+        userUuid,
+      },
+    })
+
+    if (existingMember) {
+      throw new BadRequestException('이미 그룹의 멤버입니다.')
+    }
+  }
+
+  /**
+   * 그룹 존재 여부 확인
+   * @param groupId 검증할 그룹 ID
+   */
+  async validateGroup(groupId: number): Promise<Group> {
+    const group = await this.groupRepository.findOne({
+      where: { groupId },
+    })
+    if (!group) {
+      throw new NotFoundException('그룹을 찾을 수 없습니다.')
+    }
+    return group
+  }
+
+  /**
+   * 그룹에 멤버 추가
+   * @param groupId 그룹 ID
+   * @param userUuid 추가할 사용자 UUID
+   * @param isAdmin 관리자 여부 (기본값: false)
+   */
+  async addMemberToGroup(
+    groupId: number,
+    userUuid: string,
+    isAdmin: boolean = false,
+  ): Promise<UserGroup> {
+    // 그룹과 사용자 존재 확인
+    const [group, user] = await Promise.all([
+      this.validateGroup(groupId),
+      this.usersService.getUserByUuid(userUuid),
+    ])
+
+    // 이미 그룹 멤버인지 확인
+    this.validateExistingGroupRelation(groupId, userUuid)
+
+    // 새로운 그룹 멤버 관계 생성
+    const userGroup = this.userGroupRepository.create({
+      group,
+      userUuid,
+      user,
+      isAdmin,
+    })
+
+    return await this.userGroupRepository.save(userGroup)
+  }
+
+  /**
+   * 사용자가 그룹의 관리자인지 확인
+   * @param groupId 그룹 ID
+   * @param userUuid 확인할 사용자 UUID
+   */
+  async validateGroupAdmin(
+    groupId: number,
+    userUuid: string,
+  ): Promise<boolean> {
+    const userGroup = await this.userGroupRepository.findOne({
+      where: {
+        group: { groupId },
+        userUuid,
+        isAdmin: true,
+      },
+    })
+
+    if (!userGroup) {
+      throw new ForbiddenException('해당 그룹의 관리자가 아닙니다.')
+    }
+
+    return true
   }
 }
