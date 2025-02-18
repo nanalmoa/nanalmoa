@@ -2,13 +2,10 @@ import {
   Controller,
   Post,
   Get,
-  Patch,
   Delete,
   Param,
-  Body,
   Query,
   UseGuards,
-  ForbiddenException,
   ParseIntPipe,
 } from '@nestjs/common'
 import {
@@ -19,13 +16,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger'
 import { GroupService } from './group.service'
-import { InviteGroupMemberDto } from './dto/invite-group-memeber.dto'
-import { RespondToInvitationDto } from './dto/response-invitation.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { GroupInfoResponseDto } from './dto/response-group.dto'
 import { GroupMemberResponseDto } from './dto/response-group-member.dto'
 import { GroupDetailResponseDto } from './dto/response-group-detail.dto'
-import { GroupInvitationDetailDto } from './dto/response-group-invitation-detail.dto'
 import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
 
 @ApiTags('Group')
@@ -92,24 +86,6 @@ export class GroupController {
     return this.groupService.getGroupMembers(groupId, userUuid)
   }
 
-  // 그룹 멤버 관리
-  @Post('invite')
-  @ApiOperation({ summary: '그룹 멤버 초대' })
-  @ApiResponse({ status: 201, description: '초대가 성공적으로 생성됨' })
-  @ApiResponse({ status: 400, description: '잘못된 요청' })
-  @ApiResponse({ status: 403, description: '권한 없음' })
-  async inviteGroupMembers(
-    @Body() inviteGroupMemberDto: InviteGroupMemberDto,
-    @GetUserUuid() inviterUuid: string,
-  ) {
-    if (inviteGroupMemberDto.inviteeUuids.includes(inviterUuid)) {
-      throw new ForbiddenException('자신을 초대할 수 없습니다.')
-    }
-    return this.groupService.inviteGroupMembers(
-      inviteGroupMemberDto,
-      inviterUuid,
-    )
-  }
   @Delete(':groupId/members/:memberUuid')
   @ApiOperation({ summary: '그룹 멤버 추방' })
   @ApiParam({ name: 'groupId', description: '그룹 ID' })
@@ -128,90 +104,6 @@ export class GroupController {
       adminUuid,
     )
     return { message: '멤버가 성공적으로 그룹에서 추방되었습니다.' }
-  }
-
-  // 초대 관리
-  @Patch('invitation/:id/accept')
-  @ApiOperation({ summary: '그룹 초대 수락' })
-  @ApiParam({ name: 'id', description: '초대 ID' })
-  @ApiResponse({ status: 200, description: '초대 수락 성공' })
-  @ApiResponse({ status: 400, description: '잘못된 요청' })
-  @ApiResponse({ status: 403, description: '권한 없음' })
-  @ApiResponse({ status: 404, description: '초대를 찾을 수 없음' })
-  async acceptInvitation(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUserUuid() inviteeUuid: string,
-  ) {
-    return this.groupService.acceptInvitation(id, inviteeUuid)
-  }
-
-  @Patch('invitation/:id/reject')
-  @ApiOperation({ summary: '그룹 초대 거절' })
-  @ApiParam({ name: 'id', description: '초대 ID' })
-  @ApiResponse({ status: 200, description: '초대 거절 성공' })
-  @ApiResponse({ status: 400, description: '잘못된 요청' })
-  @ApiResponse({ status: 403, description: '권한 없음' })
-  @ApiResponse({ status: 404, description: '초대를 찾을 수 없음' })
-  async rejectInvitation(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUserUuid() inviteeUuid: string,
-  ) {
-    return this.groupService.rejectInvitation(id, inviteeUuid)
-  }
-
-  @Patch('invitation/:id/cancel')
-  @ApiOperation({ summary: '그룹 초대 철회' })
-  @ApiParam({ name: 'id', description: '초대 ID' })
-  @ApiResponse({ status: 200, description: '초대 철회 성공' })
-  @ApiResponse({ status: 400, description: '잘못된 요청' })
-  @ApiResponse({ status: 403, description: '권한 없음' })
-  @ApiResponse({ status: 404, description: '초대를 찾을 수 없음' })
-  async cancelInvitation(
-    @Param('id', ParseIntPipe) id: number,
-    @GetUserUuid() inviterUuid: string,
-  ) {
-    return this.groupService.cancelInvitation(id, inviterUuid)
-  }
-
-  @Get('invitations/sent')
-  @ApiOperation({ summary: '보낸 그룹 초대 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '보낸 초대 목록',
-    type: [RespondToInvitationDto],
-  })
-  async getSentInvitations(
-    @GetUserUuid() userUuid: string,
-  ): Promise<RespondToInvitationDto[]> {
-    return this.groupService.getSentInvitations(userUuid)
-  }
-
-  @Get('invitations/received')
-  @ApiOperation({ summary: '받은 그룹 초대 조회' })
-  @ApiResponse({
-    status: 200,
-    description: '받은 초대 목록',
-    type: [RespondToInvitationDto],
-  })
-  async getReceivedInvitations(
-    @GetUserUuid() userUuid: string,
-  ): Promise<RespondToInvitationDto[]> {
-    return this.groupService.getReceivedInvitations(userUuid)
-  }
-
-  @Get('invitation/:id')
-  @ApiOperation({ summary: '그룹 초대 상세 정보 조회' })
-  @ApiParam({ name: 'id', description: '초대 ID' })
-  @ApiResponse({
-    status: 200,
-    description: '그룹 초대 상세 정보',
-    type: GroupInvitationDetailDto,
-  })
-  @ApiResponse({ status: 404, description: '초대를 찾을 수 없음' })
-  async getGroupInvitationDetail(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<GroupInvitationDetailDto> {
-    return this.groupService.getGroupInvitationDetail(id)
   }
 
   @Get(':groupId')
