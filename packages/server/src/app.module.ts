@@ -14,9 +14,9 @@ import { CategoriesModule } from './modules/categories/categories.module'
 import { PassportModule } from '@nestjs/passport'
 import { ManagerController } from './modules/manager/manager.controller'
 import { ManagerModule } from './modules/manager/manager.module'
-import { InvitationsModule } from './modules/invitations/invitations.module'
 import { DataSource } from 'typeorm'
 import { addTransactionalDataSource } from 'typeorm-transactional'
+import { InvitationsModule } from './modules/invitation/invitations.module'
 
 @Module({
   imports: [
