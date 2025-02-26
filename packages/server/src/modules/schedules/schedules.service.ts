@@ -359,16 +359,16 @@ export class SchedulesService {
 
     // 그룹 정보 업데이트 (일정 생성자만 가능)
     if (isCreator) {
-      if (updateScheduleDto.addGroupInfo) {
+      if (updateScheduleDto.groupInfo) {
+        // 기존 그룹 정보를 모두 제거하고 새로운 정보로 대체
+        await this.groupScheduleRepository.delete({
+          schedule: { scheduleId: updatedSchedule.scheduleId },
+        })
+
+        // 새로운 그룹 정보 적용
         await this.groupService.linkScheduleToGroupsAndUsers(
           updatedSchedule,
-          updateScheduleDto.addGroupInfo,
-        )
-      }
-      if (updateScheduleDto.deleteGroupInfo) {
-        await this.groupService.removeGroupMembersFromSchedule(
-          updatedSchedule.scheduleId,
-          updateScheduleDto.deleteGroupInfo,
+          updateScheduleDto.groupInfo,
         )
       }
     }
