@@ -100,18 +100,13 @@ export class UpdateScheduleDto {
     type: [GroupInfo],
     required: false,
   })
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => GroupInfo)
-  addGroupInfo?: GroupInfo[]
-
   @ApiProperty({
-    description: '삭제할 그룹 정보',
+    description: '그룹 정보',
     type: [GroupInfo],
     required: false,
   })
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => GroupInfo)
-  deleteGroupInfo?: GroupInfo[]
+  groupInfo?: GroupInfo[]
 }
