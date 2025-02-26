@@ -52,9 +52,10 @@ export const useMypageMutations = () => {
     onSuccess: () => {
       toast.success('인증번호가 발송되었습니다.\n 5분 이내에 인증해주세요.')
     },
-    onError: (err) => {
-      toast.error(err.message)
-    },
+    // onError: (err) => {
+    //   toast.error(err.message)
+    //   console.log(err.message)
+    // },
   })
 
   const mutationEmailVerify = useMutation({

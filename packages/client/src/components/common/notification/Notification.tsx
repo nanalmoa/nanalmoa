@@ -5,14 +5,17 @@ import { cn } from '@/utils/cn'
 import { getAccessToken } from '@/utils/handle-token'
 import { useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { IconButton } from '..'
 import { NotificationIcon } from '../../icons'
 import Toast from '../Toast'
 import NotificationItem from './NotificationItem'
+import { usePushNotification } from '@/constants/notification-context'
 
 const Notification = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
+  const { fireNotificationWithTimeout } = usePushNotification()
+
   const { data: invitations } = useQuery<GetInvitationsUserRes, AxiosError>({
     queryKey: [QUERY_KEYS.GET_INVITATIONS_USER, getAccessToken()],
     queryFn: getInvitationsUser,
@@ -21,6 +24,17 @@ const Notification = () => {
   const handleToggle = () => {
     setIsOpen((prev) => !prev)
   }
+
+  // invitations가 변경될 때마다 알림 발송
+  useEffect(() => {
+    if (invitations && invitations.length > 0) {
+      invitations.forEach((invitation) => {
+        fireNotificationWithTimeout('새로운 초대', 5000, {
+          body: `${invitation.inviterName}님으로부터 초대가 도착했습니다.`,
+        })
+      })
+    }
+  }, [invitations, fireNotificationWithTimeout])
 
   return (
     <>

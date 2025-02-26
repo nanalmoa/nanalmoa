@@ -4,15 +4,26 @@ import Toast from '@/components/common/Toast'
 import { path } from '@/routes/path'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
 
 const SettingAlarmPage = () => {
   const [isAlarmEnabled, setIsAlarmEnabled] = useState(false)
   const navigate = useNavigate()
 
-  const handleToggle = () => {
+  const handleToggle = async () => {
     setIsAlarmEnabled((prev) => !prev)
-    toast.error('추후 구연 사항')
+    // 알림 권한 요청 - 권한 제대로 안됨
+    if (isAlarmEnabled) {
+      setIsAlarmEnabled(false)
+      console.log('알림이 꺼졌습니다.')
+    } else {
+      const permission = await Notification.requestPermission()
+      if (permission === 'granted') {
+        setIsAlarmEnabled(true)
+        console.log('알림 권한이 허용되었습니다.')
+      } else {
+        console.log('알림 권한이 거부되었습니다.')
+      }
+    }
   }
 
   return (
@@ -53,7 +64,7 @@ const SettingAlarmPage = () => {
         디바이스 알림 권한 켜는 방법
       </h2>
       <p className="mt-2 text-center text-lg">
-        기기의 설정 &gt; 애플리케이션 &gt; 나날모아 &gt; 알림 권한
+        기기의 설정 ⚙️ &gt; 애플리케이션 &gt; 나날모아 &gt; 알림 권한
       </p>
       <Toast />
     </div>

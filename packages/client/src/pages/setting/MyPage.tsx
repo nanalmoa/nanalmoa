@@ -1,4 +1,4 @@
-import { Button } from '@/components/common'
+import { Button, Input } from '@/components/common'
 import { useUser } from '@/hooks/use-user'
 import { path } from '@/routes/path'
 import { PutMypage } from '@/types/auth'
@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import Toast from '@/components/common/Toast'
+// import Toast from '@/components/common/Toast'
 import Modal from '@/components/common/Modal'
 import { useModal } from '@/hooks/use-modal'
 import Divider from '@/components/common/Divider'
@@ -305,6 +305,13 @@ const MyPage = () => {
           </div>
         </div>
       </div>
+      <Input
+        label="이름"
+        direction="vertical"
+        errorMessage={'에러'} // 에러 메시지 전달
+        required
+        type="text" // 기본 input 타입
+      />
       <Button
         text="회원 탈퇴"
         className="bg-primary-coral"
@@ -337,7 +344,7 @@ const MyPage = () => {
           </div>
         </Modal>
       )}
-      <Toast />
+      {/* <Toast /> */}
     </div>
   )
 }
