@@ -7,9 +7,21 @@ export type RecurringOptionValue =
   | 'monthly'
   | 'yearly'
 
-export interface IGroup {
+export interface IGroupReq {
   groupId: number
   userUuids: string[]
+}
+
+export interface IGroupRes {
+  groupId: number
+  groupName: string
+  users: {
+    userUuid: string
+    name: string
+    profileImage: string
+    email: string
+    phoneNumber: string
+  }[]
 }
 
 export interface ICategory {
@@ -23,7 +35,7 @@ export interface IRepeatInfo {
   recurringDaysOfWeek?: number[] | null
   recurringDayOfMonth?: number | null
   recurringMonthOfYear?: number | null
-  groupInfo?: Array<IGroup>
+  // groupInfo?: Array<IGroupReq>
 }
 
 export interface ISchedule extends IRepeatInfo {
@@ -37,6 +49,7 @@ export interface ISchedule extends IRepeatInfo {
   isAllDay: boolean
   category: ICategory
   isRecurring: boolean;
+  groupInfo?: Array<IGroupRes>
 }
 
 export interface IMediaAnalysisResult extends IRepeatInfo {
@@ -62,7 +75,7 @@ export interface PostUploadAudioFileReq {
 
 export interface PostUploadAudioFileRes extends Array<IMediaAnalysisResult> {}
 
-export interface IPartialScheduleForm {
+export interface IPartialScheduleForm extends IRepeatInfo {
   startDate: Date
   endDate: Date
   title: string
@@ -72,25 +85,29 @@ export interface IPartialScheduleForm {
   categoryId: number
   isRecurring: boolean
   repeatType: RecurringOptionValue
+  groupInfo?: Array<IGroupReq>
+  addGroupInfo?: Array<IGroupReq>;
+  deleteGroupInfo?: Array<IGroupReq>;
 }
 
 export interface PostSchedulesReq extends IRepeatInfo {
   startDate: Date
   endDate: Date
   title: string
-  place: string
+  place?: string
   memo?: string
   isAllDay: boolean
   categoryId: number
   isRecurring: boolean
-  repeatType: RecurringOptionValue
+  repeatType?: RecurringOptionValue
+  groupInfo?: Array<IGroupReq>
 }
 
 export interface PostSchedulesRes extends ISchedule {
   isGroupSchedule: boolean
 }
 
-export interface UpdateScheduleReq {
+export interface UpdateScheduleReq extends IRepeatInfo {
   categoryId?: number
   startDate?: Date
   endDate?: Date
@@ -99,6 +116,8 @@ export interface UpdateScheduleReq {
   memo?: string
   isAllDay?: boolean
   isRecurring?: boolean
+  addGroupInfo?: Array<IGroupReq>;
+  deleteGroupInfo?: Array<IGroupReq>;
 }
 
 export interface UpdateScheduleRes extends ISchedule {}
@@ -109,3 +128,4 @@ export interface PostAnalyzeImageReq {
 }
 
 export interface PostAnalyzeImageRes extends Array<IMediaAnalysisResult> {}
+

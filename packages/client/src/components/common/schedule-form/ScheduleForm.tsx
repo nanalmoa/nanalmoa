@@ -11,6 +11,7 @@ import TextInputField from './field-components/TextInputField'
 import { addDays, setHours, setMilliseconds, setMinutes, setSeconds, startOfToday } from 'date-fns'
 import ToggleField from './field-components/ToggleField'
 import BaseSection from './field-components/BaseSection'
+import GroupField from './field-components/GroupField'
 
 type Props = {
   defaultValue?: Partial<ISchedule>
@@ -36,7 +37,8 @@ const ScheduleForm = ({
       endDate: addDays(startOfToday(), 2),
       place: "",
       memo: "",
-      isRecurring: false 
+      isRecurring: false,
+      groupInfo: [],
     },
   })
 
@@ -77,9 +79,13 @@ const ScheduleForm = ({
         place: defaultValue.place,
         memo: defaultValue.memo,
         isRecurring: defaultValue.isRecurring,
+        groupInfo: defaultValue?.groupInfo?.map((group) => ({
+          groupId: group.groupId,
+          userUuids: group.users.map(user => user.userUuid)
+        })) ?? []
       })
     }
-  }, [defaultValue])
+  }, [defaultValue, formScheduleCreate])
 
   return (
     <FormProvider {...formScheduleCreate}>
@@ -211,7 +217,19 @@ const ScheduleForm = ({
                 )}
               />
 
-              {/* <GroupField /> */}
+              <Controller
+                control={formScheduleCreate.control}
+                name="groupInfo"
+                render={({ field: { value, onChange }, fieldState: { error } }) => (
+                  <GroupField
+                    value={value}
+                    onChange={onChange}
+                    error={error}
+                    defaultGroupInfo={defaultValue?.groupInfo}
+                  />
+                )}
+              />
+
               {/* <RepetitionField /> */}
 
               <Controller
