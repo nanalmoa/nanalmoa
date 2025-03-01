@@ -28,6 +28,7 @@ import { updateSchedule } from '@/api/schedules/patch-schedule-update'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import Toast from '@/components/common/Toast'
+import { formatPhoneNumber } from '@/utils/format-phone-number'
 
 type InfoItemProps = {
   label: string
@@ -76,6 +77,7 @@ const ScheduleDetailPage = () => {
   const { id } = useParams()
   const { isModalOpen, openModal, closeModal } = useModal()
 
+  /** [API] 일정 수정 */
   const mutation = useMutation<
     UpdateScheduleRes,
     AxiosError,
@@ -144,6 +146,7 @@ const ScheduleDetailPage = () => {
                 <div className="hover:font-bold">삭제</div>
               </button>
 
+              {/* [모달창] 일정 삭제 확인 모달 */}
               {isModalOpen && (
                 <Modal onClose={closeModal}>
                   <div className="px-6">
@@ -180,14 +183,17 @@ const ScheduleDetailPage = () => {
 
           <div>
             <div className="px-7 py-2">
+              {/* 일정 카테고리 */}
               <CategoryTag
                 className="my-1 inline-block h-6"
                 label={data?.category?.categoryName || '기타'}
               />
+              {/* 일정 제목 */}
               <div className="mb-3 text-xl font-bold">{data.title}</div>
 
               <Divider />
 
+              {/* 일정 날짜 */}
               <div className="flex py-4">
                 <DateItem date={data.startDate} />
                 <NextIcon className="w-5 sm:w-10" />
@@ -206,11 +212,62 @@ const ScheduleDetailPage = () => {
                   .split('\n')
                   .map((line) => <InfoItem label="메모" content={line} />)}
               {data.memo === '' && <InfoItem label="메모" content="-" />}
+            
+              {data.groupInfo && (
+                <div>
+                  <div className="w-full rounded-full bg-neutral-200 px-2 py-1 font-[500]">
+                    🍀 일정 공유 그룹원
+                  </div>
+                  <>
+                    {data.groupInfo.map((group) => (
+                      <div key={group.groupId}>
+                        {group.users.map((user) => (
+                          <div key={user.userUuid} className="flex gap-2 pt-4">
+                            {user.profileImage ? (
+                              <img
+                                src={user.profileImage}
+                                alt={`${user.name}의 프로필`}
+                                className="size-10 rounded-full object-cover shrink-0"
+                              />
+                            ) : (
+                              <div className="flex shrink-0 size-10 items-center justify-center rounded-full bg-neutral-200">
+                                {user.name[0]}
+                              </div>
+                            )}
+                            <div>
+                              <div className="flex gap-1">
+                                <div className="flex items-center shrink-0">
+                                  {user.name}
+                                </div>
+                                <div className="text-xs flex items-center bg-primary-300 px-1 rounded-md">
+                                  {group.groupName}
+                                </div>
+                              </div>
+                              <div className="text-xs text-neutral-500">
+                                {user.phoneNumber ? (
+                                  <div>
+                                    {formatPhoneNumber(user.phoneNumber)}
+                                  </div>
+                                ) : user.email ? (
+                                  <div>{user.email}</div>
+                                ) : (
+                                  <div></div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
+      {/* 일정 수정 */}
       {isUpdate && (
         <div className="px-2 py-3">
           <div className="flex justify-between">
