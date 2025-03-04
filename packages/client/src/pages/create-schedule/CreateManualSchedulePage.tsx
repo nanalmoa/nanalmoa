@@ -7,7 +7,6 @@ import { createManualScheduleSteps } from '@/constants/schedules'
 import { useUser } from '@/hooks/use-user'
 import { CreateScheduleStepEnum } from '@/types/common'
 import {
-  // IPartialScheduleForm,
   PostSchedulesReq,
   PostSchedulesRes,
 } from '@/types/schedules'

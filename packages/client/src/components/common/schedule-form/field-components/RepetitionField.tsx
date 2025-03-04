@@ -35,21 +35,6 @@ const options: RecurringOption[] = [
   },
 ]
 
-const dateString = (repeatType: RecurringOptionValue): string => {
-  switch (repeatType) {
-    case 'daily':
-      return '일'
-    case 'weekly':
-      return '주'
-    case 'monthly':
-      return '개월'
-    case 'yearly':
-      return '년'
-    default:
-      return ''
-  }
-}
-
 const CustomPlaceholder = () => (
   <div>
     <span className="hidden sm:inline">반복</span>
@@ -60,27 +45,42 @@ const CustomPlaceholder = () => (
 const RepetitionField = ({ isUpdateForm }: { isUpdateForm?: boolean }) => {
   const { isModalOpen, openModal, closeModal } = useModal()
   const { watch, setValue } = useFormContext()
-  const [selected, setSelected] = useState<string>('')
-  const [repeatType, setRepeatType] = useState<RecurringOptionValue>('none')
 
-  const isRecurring = watch('isRecurring')
   const currentRecurringOptions = watch('recurringOptions')
   const currentEndDate = watch('endDate')
 
+  const [selected, setSelected] = useState<string>('')
+  const [repeatType, setRepeatType] = useState<RecurringOptionValue>(currentRecurringOptions?.repeatType ?? 'none')
+
   useEffect(() => {
-    if (currentRecurringOptions?.recurringInterval) {
+    const selectedDateString = (repeatType: RecurringOptionValue): string => {
+      const days = ['일', '월', '화', '수', '목', '금', '토']
+      const recurringInfo = currentRecurringOptions
+  
+      switch (repeatType) {
+        case 'daily':
+          return `${recurringInfo?.recurringInterval}일 마다 반복`;
+        case 'weekly':
+          return `${recurringInfo?.recurringInterval}주 마다 ${recurringInfo?.recurringDaysOfWeek?.map((idx: number) => days[idx].split(', '))} 요일에 반복
+          `;
+        case 'monthly':
+          return `${recurringInfo?.recurringInterval}개월 마다 ${recurringInfo?.recurringDayOfMonth && recurringInfo?.recurringDayOfMonth}일에 반복`
+        case 'yearly':
+          return `${recurringInfo?.recurringInterval}년 마다 ${recurringInfo?.recurringMonthOfYear && recurringInfo?.recurringMonthOfYear}월에 반복`
+        default:
+          return ''
+      }
+    }
+
+    if (currentRecurringOptions?.repeatType && currentRecurringOptions?.recurringInterval) {
       setSelected(
-        `${currentRecurringOptions.recurringInterval}${dateString(repeatType)} 간격 반복`
+        `${selectedDateString(currentRecurringOptions.repeatType)}`
       )
     }
-  }, [repeatType, currentRecurringOptions?.recurringInterval])
+  }, [currentRecurringOptions, currentRecurringOptions?.repeatType, currentRecurringOptions?.recurringInterval])
 
   return (
     <>
-      <div id="isRecurring" className="hidden">
-        {isRecurring}
-      </div>
-      {/* <div className="hidden">{currentRecurringOptions?.repeatType}</div> */}
       <BaseSection
         label="반복"
       >
@@ -94,6 +94,7 @@ const RepetitionField = ({ isUpdateForm }: { isUpdateForm?: boolean }) => {
             className="select-placeholder"
             menuPlacement="auto"
             menuPosition="fixed"
+            value={options.find(option => option.value === currentRecurringOptions?.repeatType) || null}
             components={{
               Option: ({ ...props }) => (
                 <components.Option {...props}>

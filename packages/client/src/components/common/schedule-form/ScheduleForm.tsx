@@ -71,20 +71,45 @@ const ScheduleForm = ({
   /** defaultValue가 프로퍼티로 넘어온 경우, 폼을 defaultValue로 초기화 */
   useEffect(() => {
     if (defaultValue) {
-      formScheduleCreate.reset({
-        title: defaultValue.title,
-        categoryId: defaultValue.category?.categoryId,
-        isAllDay: defaultValue.isAllDay,
-        startDate: new Date(defaultValue.startDate!),
-        endDate: new Date(defaultValue.endDate!),
-        place: defaultValue.place,
-        memo: defaultValue.memo,
-        isRecurring: defaultValue.isRecurring,
-        groupInfo: defaultValue?.groupInfo?.map((group) => ({
-          groupId: group.groupId,
-          userUuids: group.users.map(user => user.userUuid)
-        })) ?? []
-      })
+      if (!defaultValue?.recurringInfo) {
+        formScheduleCreate.reset({
+          title: defaultValue.title,
+          categoryId: defaultValue.category?.categoryId,
+          isAllDay: defaultValue.isAllDay,
+          startDate: new Date(defaultValue.startDate!),
+          endDate: new Date(defaultValue.endDate!),
+          place: defaultValue.place,
+          memo: defaultValue.memo,
+          isRecurring: defaultValue.isRecurring,
+          groupInfo: defaultValue?.groupInfo?.map((group) => ({
+            groupId: group.groupId,
+            userUuids: group.users.map(user => user.userUuid)
+          })) ?? []
+        })
+      } else {
+        formScheduleCreate.reset({
+          title: defaultValue.title,
+          categoryId: defaultValue.category?.categoryId,
+          isAllDay: defaultValue.isAllDay,
+          startDate: new Date(defaultValue.startDate!),
+          endDate: new Date(defaultValue.endDate!),
+          place: defaultValue.place,
+          memo: defaultValue.memo,
+          isRecurring: true,
+          groupInfo: defaultValue?.groupInfo?.map((group) => ({
+            groupId: group.groupId,
+            userUuids: group.users.map(user => user.userUuid)
+          })) ?? [],
+          recurringOptions: {
+            repeatEndDate: defaultValue?.recurringInfo?.repeatEndDate,
+            recurringInterval: defaultValue?.recurringInfo?.interval,
+            repeatType: defaultValue?.recurringInfo?.repeatType,
+            ...(defaultValue?.recurringInfo?.daysOfWeek && { recurringDaysOfWeek: defaultValue?.recurringInfo?.daysOfWeek }),
+            ...(defaultValue?.recurringInfo?.dayOfMonth && { recurringDayOfMonth: defaultValue?.recurringInfo?.dayOfMonth }),
+            ...(defaultValue?.recurringInfo?.monthOfYear && { recurringMonthOfYear: defaultValue?.recurringInfo?.monthOfYear })
+          }
+        })
+      }
     }
   }, [defaultValue, formScheduleCreate])
 

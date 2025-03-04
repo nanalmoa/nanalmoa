@@ -35,6 +35,7 @@ export interface IRepeatInfo {
   recurringDaysOfWeek?: number[] | null
   recurringDayOfMonth?: number | null
   recurringMonthOfYear?: number | null
+  repeatType?: RecurringOptionValue
   // groupInfo?: Array<IGroupReq>
 }
 

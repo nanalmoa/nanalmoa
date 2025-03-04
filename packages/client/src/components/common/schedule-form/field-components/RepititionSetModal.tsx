@@ -5,7 +5,6 @@ import { useFormContext } from 'react-hook-form'
 import Divider from '../../Divider'
 import 'react-datepicker/dist/react-datepicker.css'
 import './react-datepicker.css'
-// import DatePicker from 'react-datepicker'
 import { useState } from 'react'
 import { getDate, setDate, setMonth, setYear } from 'date-fns'
 import Picker from '../../Picker'
@@ -15,20 +14,6 @@ type Props = {
   setSelected: (selected: string) => void
 } & TModal
 
-// const CustomInput = React.forwardRef<
-//   HTMLDivElement,
-//   { value?: string; onClick?: () => void }
-// >(({ value, onClick }, ref) => (
-//   <div
-//     className="mt-1 flex cursor-pointer space-x-1"
-//     onClick={onClick}
-//     ref={ref}
-//   >
-//     <div className="w-28 rounded-lg bg-neutral-200 px-3 py-3 text-center text-xs text-neutral-700 sm:w-36 sm:py-2 sm:text-base">
-//       {value ? value.split(' ').slice(0, 3).join(' ') : '날짜 선택'}
-//     </div>
-//   </div>
-// ))
 
 const dateString = (repeatType: RecurringOptionValue): string => {
   switch (repeatType) {
@@ -54,7 +39,25 @@ const RepititionBottomComponent = ({
 
   const currentRecurringOptions = watch('recurringOptions')
   const repeatEndDate = currentRecurringOptions.repeatEndDate
-  const recurringInterval = currentRecurringOptions.recurringInterval
+
+  const selectedDateString = (repeatType: RecurringOptionValue): string => {
+    const days = ['일', '월', '화', '수', '목', '금', '토']
+    const recurringInfo = currentRecurringOptions
+
+    switch (repeatType) {
+      case 'daily':
+        return `${recurringInfo?.recurringInterval}일 마다 반복`;
+      case 'weekly':
+        return `${recurringInfo?.recurringInterval}주 마다 ${recurringInfo?.recurringDaysOfWeek?.map((idx: number) => days[idx].split(', '))}요일에 반복
+        `;
+      case 'monthly':
+        return `${recurringInfo?.recurringInterval}개월 마다 ${recurringInfo?.recurringDayOfMonth && recurringInfo?.recurringDayOfMonth}일에 반복`
+      case 'yearly':
+        return `${recurringInfo?.recurringInterval}년 마다 ${recurringInfo?.recurringMonthOfYear && recurringInfo?.recurringMonthOfYear}월에 반복`
+      default:
+        return ''
+    }
+  }
 
   const generateColumns = () => {
     const currentYear = new Date().getFullYear() - 10
@@ -148,16 +151,6 @@ const RepititionBottomComponent = ({
                 placeholder="날짜 선택"
                 title="날짜 선택"
               />
-              {/* <DatePicker
-                selected={field.value}
-                onChange={(date) => setValue('repeatEndDate', date)}
-                timeFormat="HH:mm"
-                timeCaption="시간"
-                locale="ko"
-                dateFormat={'yyyy. MM. dd.'}
-                customInput={<CustomInput />}
-                calendarClassName="custom-datepicker"
-              /> */}
             </div>
         </div>
       </div>
@@ -165,7 +158,7 @@ const RepititionBottomComponent = ({
         <button
           onClick={() => {
             setSelected(
-              `${recurringInterval}${dateString(repeatType)} 간격 반복`,
+              `${selectedDateString(repeatType)}`,
             )
             onClose()
           }}
