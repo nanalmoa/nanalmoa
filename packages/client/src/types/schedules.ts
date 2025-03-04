@@ -38,6 +38,15 @@ export interface IRepeatInfo {
   // groupInfo?: Array<IGroupReq>
 }
 
+export interface IRepeatInfoRes {
+  dayOfMonth?: number | null
+  daysOfWeek?: number[] | null
+  interval?: number
+  monthOfYear?: number | null
+  repeatEndDate?: Date
+  repeatType?: RecurringOptionValue
+}
+
 export interface ISchedule extends IRepeatInfo {
   scheduleId: number
   userUuid: string
@@ -50,6 +59,7 @@ export interface ISchedule extends IRepeatInfo {
   category: ICategory
   isRecurring: boolean;
   groupInfo?: Array<IGroupRes>
+  recurringInfo?: IRepeatInfoRes
 }
 
 export interface IMediaAnalysisResult extends IRepeatInfo {
@@ -84,10 +94,8 @@ export interface IPartialScheduleForm extends IRepeatInfo {
   isAllDay: boolean
   categoryId: number
   isRecurring: boolean
-  repeatType: RecurringOptionValue
+  recurringOptions: IRepeatInfo
   groupInfo?: Array<IGroupReq>
-  addGroupInfo?: Array<IGroupReq>;
-  deleteGroupInfo?: Array<IGroupReq>;
 }
 
 export interface PostSchedulesReq extends IRepeatInfo {

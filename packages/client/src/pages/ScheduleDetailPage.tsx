@@ -9,6 +9,7 @@ import {
   IPartialScheduleForm,
   UpdateScheduleReq,
   UpdateScheduleRes,
+  RecurringOptionValue,
 } from '@/types/schedules'
 import { formatDate } from '@/utils/format-date'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -93,6 +94,25 @@ const ScheduleDetailPage = () => {
     queryKey: [QUERY_KEYS.GET_SCHEDULE_BY_ID, isUpdate],
     queryFn: () => getScheduleById(id as string),
   })
+
+  const dateString = (repeatType: RecurringOptionValue): string => {
+    const days = ['일', '월', '화', '수', '목', '금', '토']
+    const recurringInfo = data?.recurringInfo
+
+    switch (repeatType) {
+      case 'daily':
+        return `${recurringInfo?.interval}일 마다 반복`;
+      case 'weekly':
+        return `${recurringInfo?.interval}주 마다 ${recurringInfo?.daysOfWeek?.map((idx) => days[idx].split(', '))} 요일에 반복
+        `;
+      case 'monthly':
+        return `${recurringInfo?.interval}개월 마다 ${recurringInfo?.dayOfMonth && recurringInfo?.dayOfMonth}일에 반복`
+      case 'yearly':
+        return `${recurringInfo?.interval}년 마다 ${recurringInfo?.monthOfYear && recurringInfo?.monthOfYear}월에 반복`
+      default:
+        return ''
+    }
+  }
 
   if (isLoading) return <div>로딩 중...</div>
   if (!data) return <div>데이터가 없습니다.</div>
@@ -257,11 +277,18 @@ const ScheduleDetailPage = () => {
                             </div>
                           </div>
                         ))}
+
                       </div>
                     ))}
                   </>
                 </div>
               )}
+              {data.recurringInfo && data.recurringInfo.repeatType && data.recurringInfo.repeatType !== "none" && (
+                <InfoItem
+                label="반복"
+                content={dateString(data.recurringInfo.repeatType)}
+              />
+              )} 
             </div>
           </div>
         </div>
@@ -286,6 +313,7 @@ const ScheduleDetailPage = () => {
             defaultValue={data}
             onSubmit={handleUpdateSchedule}
             buttonMessage="수정하기"
+            isUpdateForm
           />
         </div>
       )}
