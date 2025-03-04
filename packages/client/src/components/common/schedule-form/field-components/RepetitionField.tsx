@@ -66,7 +66,7 @@ const RepetitionField = ({ isUpdateForm }: { isUpdateForm?: boolean }) => {
         case 'monthly':
           return `${recurringInfo?.recurringInterval}개월 마다 ${recurringInfo?.recurringDayOfMonth && recurringInfo?.recurringDayOfMonth}일에 반복`
         case 'yearly':
-          return `${recurringInfo?.recurringInterval}년 마다 ${recurringInfo?.recurringMonthOfYear && recurringInfo?.recurringMonthOfYear}월에 반복`
+          return `${recurringInfo?.recurringInterval}년 마다 ${recurringInfo?.recurringMonthOfYear && recurringInfo?.recurringMonthOfYear + 1}월에 반복`
         default:
           return ''
       }

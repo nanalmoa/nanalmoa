@@ -344,7 +344,7 @@ const RepititionSetModal = ({ repeatType, onClose, setSelected }: Props) => {
                     setMonthSelected(date)
                     setValue('recurringOptions', {
                       ...currentRecurringOptions,
-                      recurringMonthOfYear: date
+                      recurringMonthOfYear: date - 1
                     })
                   }}
                   className={`w-8 rounded p-2 text-center text-sm sm:w-10 sm:text-base ${
