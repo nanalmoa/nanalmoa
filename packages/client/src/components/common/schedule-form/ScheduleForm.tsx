@@ -6,12 +6,11 @@ import CategoryField from './field-components/CategoryField'
 import DateTimeField from './field-components/DateTimeField'
 import TextAreaField from './field-components/TextAreaField'
 import TextInputField from './field-components/TextInputField'
-// import GroupField from './field-components/GroupField'
-// import RepetitionField from './field-components/RepetitionField'
 import { addDays, setHours, setMilliseconds, setMinutes, setSeconds, startOfToday } from 'date-fns'
 import ToggleField from './field-components/ToggleField'
 import BaseSection from './field-components/BaseSection'
 import GroupField from './field-components/GroupField'
+import RepetitionField from './field-components/RepetitionField'
 
 type Props = {
   defaultValue?: Partial<ISchedule>
@@ -19,12 +18,14 @@ type Props = {
   onSubmit: (data: IPartialScheduleForm) => void
   /** 하단 등록하기 버튼 메세지 */
   buttonMessage?: string
+  isUpdateForm?: boolean
 }
 
 const ScheduleForm = ({
   defaultValue,
   onSubmit,
   buttonMessage = '등록하기',
+  isUpdateForm
 }: Props) => {
   const [isDetailOpen, setIsDetailOpen] = useState<boolean>(false)
 
@@ -70,20 +71,45 @@ const ScheduleForm = ({
   /** defaultValue가 프로퍼티로 넘어온 경우, 폼을 defaultValue로 초기화 */
   useEffect(() => {
     if (defaultValue) {
-      formScheduleCreate.reset({
-        title: defaultValue.title,
-        categoryId: defaultValue.category?.categoryId,
-        isAllDay: defaultValue.isAllDay,
-        startDate: new Date(defaultValue.startDate!),
-        endDate: new Date(defaultValue.endDate!),
-        place: defaultValue.place,
-        memo: defaultValue.memo,
-        isRecurring: defaultValue.isRecurring,
-        groupInfo: defaultValue?.groupInfo?.map((group) => ({
-          groupId: group.groupId,
-          userUuids: group.users.map(user => user.userUuid)
-        })) ?? []
-      })
+      if (!defaultValue?.recurringInfo) {
+        formScheduleCreate.reset({
+          title: defaultValue.title,
+          categoryId: defaultValue.category?.categoryId,
+          isAllDay: defaultValue.isAllDay,
+          startDate: new Date(defaultValue.startDate!),
+          endDate: new Date(defaultValue.endDate!),
+          place: defaultValue.place,
+          memo: defaultValue.memo,
+          isRecurring: defaultValue.isRecurring,
+          groupInfo: defaultValue?.groupInfo?.map((group) => ({
+            groupId: group.groupId,
+            userUuids: group.users.map(user => user.userUuid)
+          })) ?? []
+        })
+      } else {
+        formScheduleCreate.reset({
+          title: defaultValue.title,
+          categoryId: defaultValue.category?.categoryId,
+          isAllDay: defaultValue.isAllDay,
+          startDate: new Date(defaultValue.startDate!),
+          endDate: new Date(defaultValue.endDate!),
+          place: defaultValue.place,
+          memo: defaultValue.memo,
+          isRecurring: true,
+          groupInfo: defaultValue?.groupInfo?.map((group) => ({
+            groupId: group.groupId,
+            userUuids: group.users.map(user => user.userUuid)
+          })) ?? [],
+          recurringOptions: {
+            repeatEndDate: defaultValue?.recurringInfo?.repeatEndDate,
+            recurringInterval: defaultValue?.recurringInfo?.interval,
+            repeatType: defaultValue?.recurringInfo?.repeatType,
+            ...(defaultValue?.recurringInfo?.daysOfWeek && { recurringDaysOfWeek: defaultValue?.recurringInfo?.daysOfWeek }),
+            ...(defaultValue?.recurringInfo?.dayOfMonth && { recurringDayOfMonth: defaultValue?.recurringInfo?.dayOfMonth }),
+            ...(defaultValue?.recurringInfo?.monthOfYear && { recurringMonthOfYear: defaultValue?.recurringInfo?.monthOfYear })
+          }
+        })
+      }
     }
   }, [defaultValue, formScheduleCreate])
 
@@ -230,7 +256,9 @@ const ScheduleForm = ({
                 )}
               />
 
-              {/* <RepetitionField /> */}
+              <RepetitionField 
+                isUpdateForm={isUpdateForm}
+              />
 
               <Controller
                 control={formScheduleCreate.control}
