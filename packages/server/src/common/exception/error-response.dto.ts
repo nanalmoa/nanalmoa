@@ -24,14 +24,13 @@ export class ErrorResponseDto {
 
   @ApiProperty({
     description: '서비스 자체 에러 코드',
-    example: 'V001',
-    enum: ErrorCode,
+    example: 'C001',
   })
-  errorCode: ErrorCode
+  errorCode: string
 
   @ApiProperty({
     description: '에러 메시지',
-    example: '유효하지 않은 입력값입니다.',
+    example: '잘못된 입력값입니다.',
   })
   message: string
 
@@ -57,7 +56,7 @@ export class ErrorResponseDto {
 
   constructor(
     statusCode: number,
-    errorCode: ErrorCode,
+    errorCode: string,
     message: string,
     details?: ErrorDetails,
   ) {
@@ -72,26 +71,42 @@ export class ErrorResponseDto {
   }
 
   /**
-   * 에러 응답 객체를 생성하는 정적 팩토리 메서드
+   * ErrorCode 객체로부터 에러 응답 객체를 생성하는 정적 팩토리 메서드
    */
-  static create(
-    statusCode: number,
+  static fromErrorCode(
+    errorCode: ErrorCode,
+    details?: ErrorDetails,
+  ): ErrorResponseDto {
+    return new ErrorResponseDto(
+      errorCode.status,
+      errorCode.code,
+      errorCode.message,
+      details,
+    )
+  }
+
+  /**
+   * 사용자 정의 메시지와 함께 에러 응답 객체를 생성하는 정적 팩토리 메서드
+   */
+  static fromErrorCodeWithMessage(
     errorCode: ErrorCode,
     message: string,
     details?: ErrorDetails,
   ): ErrorResponseDto {
-    return new ErrorResponseDto(statusCode, errorCode, message, details)
+    return new ErrorResponseDto(
+      errorCode.status,
+      errorCode.code,
+      message,
+      details,
+    )
   }
 
   /**
    * 유효성 검증 에러에 대한 응답을 생성하는 팩토리 메서드
    */
-  static createValidationError(
-    statusCode: number,
-    errorCode: ErrorCode,
-    message: string,
-    fieldErrors: FieldError[],
-  ): ErrorResponseDto {
-    return new ErrorResponseDto(statusCode, errorCode, message, { fieldErrors })
+  static createValidationError(fieldErrors: FieldError[]): ErrorResponseDto {
+    return ErrorResponseDto.fromErrorCode(ErrorCode.INVALID_INPUT_VALUE, {
+      fieldErrors,
+    })
   }
 }

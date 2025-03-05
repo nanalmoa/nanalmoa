@@ -107,27 +107,30 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
 
       // 상태 코드에 따른 에러 코드 매핑
-      let errorCode: ErrorCode
+      let errorCodeObj: ErrorCode
       switch (statusCode) {
         case HttpStatus.BAD_REQUEST:
-          errorCode = ErrorCode.V000
+          errorCodeObj = ErrorCode.INVALID_INPUT_VALUE
           break
         case HttpStatus.UNAUTHORIZED:
-          errorCode = ErrorCode.A000
+          errorCodeObj = ErrorCode.UNAUTHORIZED
           break
         case HttpStatus.FORBIDDEN:
-          errorCode = ErrorCode.A003
+          errorCodeObj = ErrorCode.HANDLE_ACCESS_DENIED
           break
         case HttpStatus.NOT_FOUND:
-          errorCode = ErrorCode.G000
+          errorCodeObj = ErrorCode.RESOURCE_NOT_FOUND
+          break
+        case HttpStatus.METHOD_NOT_ALLOWED:
+          errorCodeObj = ErrorCode.METHOD_NOT_ALLOWED
           break
         default:
-          errorCode = ErrorCode.G000
+          errorCodeObj = ErrorCode.INTERNAL_SERVER_ERROR
       }
 
       errorResponse = new ErrorResponseDto(
         statusCode,
-        errorCode,
+        errorCodeObj.code,
         message,
         details,
       )
@@ -136,19 +139,19 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         `HttpException: ${JSON.stringify({
           ...requestInfo,
           statusCode,
-          errorCode,
+          errorCode: errorCodeObj.code,
           message,
         })}`,
       )
     }
     // 그 외 모든 예외 처리 (500 Internal Server Error)
     else {
-      const statusCode = HttpStatus.INTERNAL_SERVER_ERROR
+      const errorCodeObj = ErrorCode.INTERNAL_SERVER_ERROR
 
       // 예외 객체가 Error 인스턴스인 경우
       let message: string
       if (exception instanceof Error) {
-        message = exception.message || '서버 내부 오류가 발생했습니다.'
+        message = exception.message || errorCodeObj.message
 
         // 스택 트레이스 로깅
         this.logger.error(
@@ -156,11 +159,15 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           exception.stack,
         )
       } else {
-        message = '알 수 없는 오류가 발생했습니다.'
+        message = errorCodeObj.message
         this.logger.error(`Unknown Exception: ${JSON.stringify(exception)}`)
       }
 
-      errorResponse = new ErrorResponseDto(statusCode, ErrorCode.G000, message)
+      errorResponse = new ErrorResponseDto(
+        errorCodeObj.status,
+        errorCodeObj.code,
+        message,
+      )
 
       this.logger.error(
         `InternalServerError: ${JSON.stringify({
