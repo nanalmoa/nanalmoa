@@ -24,6 +24,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
     const request = ctx.getRequest<Request>()
+    const timestamp = new Date().toISOString()
 
     // 요청 정보 로깅
     const requestInfo = {
@@ -31,6 +32,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       method: request.method,
       ip: request.ip,
       userAgent: request.headers['user-agent'],
+      timestamp,
     }
 
     let errorResponse: ErrorResponseDto
@@ -177,8 +179,14 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       )
     }
 
-    // 응답 반환
-    response.status(errorResponse.statusCode).json(errorResponse)
+    // 응답 반환 - timestamp 필드가 ErrorResponseDto 생성자에서 자동으로 추가됨
+    response.status(errorResponse.statusCode).json({
+      statusCode: errorResponse.statusCode,
+      errorCode: errorResponse.errorCode,
+      message: errorResponse.message,
+      timestamp: errorResponse.timestamp,
+      ...(errorResponse.details && { details: errorResponse.details }),
+    })
   }
 
   /**
