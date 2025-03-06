@@ -19,6 +19,8 @@ import { Transactional } from 'typeorm-transactional'
 import { RecurringSchedulesService } from './recurring-schedules.service'
 import { ScheduleUtils } from './schedules.util'
 import { GroupScheduleService } from './group-schedules.service'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class SchedulesService {
@@ -191,7 +193,10 @@ export class SchedulesService {
       relations: ['category', 'recurring'],
     })
     if (!schedule) {
-      throw new NotFoundException(`Schedule with id: ${id} not found.`)
+      throw BusinessException.fromMessage(
+        ErrorCode.SCHEDULE_NOT_FOUND,
+        `ID가 ${id}인 일정을 찾을 수 없습니다.`,
+      )
     }
     return this.scheduleUtils.convertToResponseDto(schedule)
   }
