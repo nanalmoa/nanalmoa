@@ -10,7 +10,6 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
-  ForbiddenException,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { AuthGuard } from '@nestjs/passport'
@@ -38,6 +37,8 @@ import {
   UploadVoiceScheduleWhisperDocs,
   UploadImageScheduleDocs,
 } from './schedules.docs'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('schedules')
@@ -66,7 +67,8 @@ export class SchedulesController {
           subordinateUuid,
         )
       if (!isManager) {
-        throw new ForbiddenException(
+        throw new BusinessException(
+          ErrorCode.HANDLE_ACCESS_DENIED,
           '해당 사용자의 일정을 조회할 권한이 없습니다.',
         )
       }
@@ -93,7 +95,8 @@ export class SchedulesController {
           subordinateUuid,
         )
       if (!isManager) {
-        throw new ForbiddenException(
+        throw new BusinessException(
+          ErrorCode.HANDLE_ACCESS_DENIED,
           '해당 사용자의 일정을 조회할 권한이 없습니다.',
         )
       }
@@ -119,7 +122,8 @@ export class SchedulesController {
           subordinateUuid,
         )
       if (!isManager) {
-        throw new ForbiddenException(
+        throw new BusinessException(
+          ErrorCode.HANDLE_ACCESS_DENIED,
           '해당 사용자의 일정을 조회할 권한이 없습니다.',
         )
       }
@@ -155,7 +159,8 @@ export class SchedulesController {
           subordinateUuid,
         )
       if (!isManager) {
-        throw new ForbiddenException(
+        throw new BusinessException(
+          ErrorCode.HANDLE_ACCESS_DENIED,
           '해당 사용자의 일정을 조회할 권한이 없습니다.',
         )
       }
