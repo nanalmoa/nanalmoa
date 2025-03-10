@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  Logger,
-  InternalServerErrorException,
-} from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import {
@@ -15,6 +9,8 @@ import { ManagerSubordinate } from 'src/entities/manager-subordinate.entity'
 import { CreateInvitationDto } from './dto/create-invitation.dto'
 import { UserResponseDto } from '../users/dto/user-response.dto'
 import { UsersService } from '../users/users.service'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class ManagerService {
@@ -35,13 +31,15 @@ export class ManagerService {
       this.usersService.checkUserExists(createInvitationDto.subordinateUuid),
     ])
     if (!managerExists) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
         `관리자 UUID ${createInvitationDto.managerUuid}를 찾을 수 없습니다.`,
       )
     }
 
     if (!subordinateExists) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
         `피관리자 UUID ${createInvitationDto.subordinateUuid}를 찾을 수 없습니다.`,
       )
     }
@@ -49,7 +47,8 @@ export class ManagerService {
     if (
       createInvitationDto.managerUuid === createInvitationDto.subordinateUuid
     ) {
-      throw new BadRequestException(
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
         `관리자 UUID ${createInvitationDto.managerUuid}와 피관리자 UUID ${createInvitationDto.managerUuid}를 같게 설정할 수 없습니다.`,
       )
     }
@@ -64,7 +63,10 @@ export class ManagerService {
     })
 
     if (!relation) {
-      throw new NotFoundException('관리자-피관리자 관계를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '관리자-피관리자 관계를 찾을 수 없습니다.',
+      )
     }
 
     await this.managerSubordinateRepository.remove(relation)
@@ -98,7 +100,8 @@ export class ManagerService {
       return managers.map((manager) => new UserResponseDto(manager))
     } catch (error) {
       this.logger.error(`관리자 목록 조회 실패: ${error.message}`, error.stack)
-      throw new InternalServerErrorException(
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
         '관리자 목록 조회 중 오류가 발생했습니다.',
       )
     }
@@ -125,7 +128,8 @@ export class ManagerService {
         `피관리자 목록 조회 실패: ${error.message}`,
         error.stack,
       )
-      throw new InternalServerErrorException(
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
         '피관리자 목록 조회 중 오류가 발생했습니다.',
       )
     }
@@ -154,17 +158,15 @@ export class ManagerService {
         return false
       }
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
+      if (error instanceof BusinessException) {
         throw error
       }
       this.logger.error(
         `관리자 관계 확인 중 오류 발생: ${error.message}`,
         error.stack,
       )
-      throw new InternalServerErrorException(
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
         '관리자 관계 확인 중 오류가 발생했습니다.',
       )
     }
@@ -185,7 +187,10 @@ export class ManagerService {
     })
 
     if (existingRelation) {
-      throw new BadRequestException('이미 매니저-부하직원 관계가 존재합니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '이미 매니저-부하직원 관계가 존재합니다.',
+      )
     }
   }
 
