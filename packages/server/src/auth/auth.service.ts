@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
 import axios from 'axios'
@@ -29,6 +23,8 @@ import * as path from 'path'
 import * as fs from 'fs'
 import { KakaoUserResponse } from './types/kakao-user-response.interface'
 import { NaverUserResponse } from './types/naver-user-response.interface'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 @Injectable()
 export class AuthService {
   constructor(
@@ -106,14 +102,20 @@ export class AuthService {
     address?: string,
   ): Promise<BasicSignupResponseDto> {
     if (!this.isPhoneNumberVerified(phoneNumber)) {
-      throw new BadRequestException('전화번호 인증이 필요합니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '전화번호 인증이 필요합니다.',
+      )
     }
 
     const existingUser = await this.userRepository.findOne({
       where: { phoneNumber },
     })
     if (existingUser) {
-      throw new ConflictException('이미 존재하는 전화번호입니다.')
+      throw new BusinessException(
+        ErrorCode.USER_ALREADY_EXISTS,
+        '이미 존재하는 전화번호입니다.',
+      )
     }
 
     const newUser = this.userRepository.create({
@@ -186,7 +188,10 @@ export class AuthService {
   async validateUserByPhoneNumber(phoneNumber: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { phoneNumber } })
     if (!user) {
-      throw new UnauthorizedException('등록되지 않은 전화번호입니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        '등록되지 않은 전화번호입니다.',
+      )
     }
     return user
   }
@@ -225,7 +230,10 @@ export class AuthService {
       storedData &&
       now.getTime() - storedData.expiresAt.getTime() < -4 * 60 * 1000
     ) {
-      throw new BadRequestException('1분 후에 다시 시도해주세요.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '1분 후에 다시 시도해주세요.',
+      )
     }
 
     const verificationCode = this.generateVerificationCode()
@@ -260,13 +268,22 @@ export class AuthService {
   async verifyCode(phoneNumber: string, code: string): Promise<void> {
     const storedData = this.verificationCodes.get(phoneNumber)
     if (!storedData) {
-      throw new UnauthorizedException('유효하지 않은 인증 코드입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_CREDENTIALS,
+        '유효하지 않은 인증 코드입니다.',
+      )
     }
     if (storedData.code !== code) {
-      throw new UnauthorizedException('유효하지 않은 인증 코드입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_CREDENTIALS,
+        '유효하지 않은 인증 코드입니다.',
+      )
     }
     if (new Date() > storedData.expiresAt) {
-      throw new UnauthorizedException('유효하지 않은 인증 코드입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_CREDENTIALS,
+        '유효하지 않은 인증 코드입니다.',
+      )
     }
 
     this.setPhoneNumberVerified(phoneNumber)
@@ -315,7 +332,10 @@ export class AuthService {
       } else {
         console.error('unknown error', error)
       }
-      throw new UnauthorizedException('네이버 토큰 획득에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '네이버 토큰 획득에 실패했습니다.',
+      )
     }
   }
 
@@ -332,7 +352,10 @@ export class AuthService {
       } else {
         console.error('unknown error', error)
       }
-      throw new UnauthorizedException('네이버 사용자 정보 획득에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '네이버 사용자 정보 획득에 실패했습니다.',
+      )
     }
   }
 
@@ -359,7 +382,10 @@ export class AuthService {
       } else {
         console.error('unknown error', error)
       }
-      throw new UnauthorizedException('네이버 토큰 갱신에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '네이버 토큰 갱신에 실패했습니다.',
+      )
     }
   }
 
@@ -385,7 +411,10 @@ export class AuthService {
       } else {
         console.error('unknown error', error)
       }
-      throw new UnauthorizedException('카카오 토큰 획득에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '카카오 토큰 획득에 실패했습니다.',
+      )
     }
   }
 
@@ -402,7 +431,10 @@ export class AuthService {
       } else {
         console.error('unknown error', error)
       }
-      throw new UnauthorizedException('카카오 사용자 정보 획득에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '카카오 사용자 정보 획득에 실패했습니다.',
+      )
     }
   }
 
@@ -429,7 +461,10 @@ export class AuthService {
       } else {
         console.error('unknown error', error)
       }
-      throw new UnauthorizedException('카카오 토큰 갱신에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '카카오 토큰 갱신에 실패했습니다.',
+      )
     }
   }
 
@@ -451,7 +486,10 @@ export class AuthService {
       email = socialUser.email
       profileImage = socialUser.profileImage
     } else {
-      throw new UnauthorizedException('지원하지 않는 소셜 프로바이더입니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '지원하지 않는 소셜 프로바이더입니다.',
+      )
     }
 
     const auth = await this.authRepository.findOne({
@@ -546,7 +584,10 @@ export class AuthService {
       where: { userUuid },
     })
     if (!user) {
-      throw new UnauthorizedException('사용자를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        '사용자를 찾을 수 없습니다.',
+      )
     }
 
     const auth = await this.authRepository.findOne({
@@ -554,7 +595,10 @@ export class AuthService {
     })
 
     if (!auth || auth.refreshToken !== refreshToken) {
-      throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_CREDENTIALS,
+        '유효하지 않은 리프레시 토큰입니다.',
+      )
     }
 
     try {
@@ -570,7 +614,8 @@ export class AuthService {
           newTokens = await this.refreshKakaoToken(refreshToken)
           break
         default:
-          throw new UnauthorizedException(
+          throw new BusinessException(
+            ErrorCode.UNAUTHORIZED,
             '지원하지 않는 소셜 프로바이더입니다.',
           )
       }
@@ -593,13 +638,19 @@ export class AuthService {
         console.error('unknown error', error)
       }
       await this.authRepository.update(auth.authId, { refreshToken: null })
-      throw new UnauthorizedException('토큰 갱신에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '토큰 갱신에 실패했습니다.',
+      )
     }
   }
 
   async sendEmailVerification(email: string) {
     if (!this.isValidEmail(email)) {
-      throw new BadRequestException('잘못된 이메일 형식입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '잘못된 이메일 형식입니다.',
+      )
     }
 
     const now = new Date()
@@ -610,7 +661,10 @@ export class AuthService {
       storedData &&
       now.getTime() - storedData.expiresAt.getTime() < -4 * 60 * 1000
     ) {
-      throw new BadRequestException('1분 후에 다시 시도해주세요.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '1분 후에 다시 시도해주세요.',
+      )
     }
 
     const verificationCode = this.generateVerificationCode()
@@ -633,7 +687,10 @@ export class AuthService {
       htmlContent = fs.readFileSync(templatePath, 'utf8')
     } catch (error) {
       console.error('템플릿 파일을 읽을 수 없습니다:', error)
-      throw new BadRequestException('이메일 템플릿을 로드할 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        '이메일 템플릿을 로드할 수 없습니다.',
+      )
     }
 
     htmlContent = htmlContent.replace('{{verificationCode}}', verificationCode)
@@ -649,7 +706,10 @@ export class AuthService {
       console.error('이메일 전송 실패:', error)
       // 전송 실패 시 저장된 코드 삭제
       this.emailVerificationCodes.delete(email)
-      throw new BadRequestException('이메일 전송에 실패했습니다.')
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        '이메일 전송에 실패했습니다.',
+      )
     }
   }
 
@@ -708,7 +768,8 @@ export class AuthService {
       }
     } catch (error) {
       console.error(`${provider} unlink 오류`, error)
-      throw new InternalServerErrorException(
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
         `${provider} 연결 해제 실패: ${error.message}`,
       )
     }
@@ -717,7 +778,10 @@ export class AuthService {
   private async revokeKakaoConnection(userUuid: string): Promise<void> {
     const clientId = this.configService.get<string>('KAKAO_ADMIN')
     if (!clientId) {
-      throw new Error('KAKAO_CLIENT_ID가 설정되지 않았습니다.')
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        'KAKAO_CLIENT_ID가 설정되지 않았습니다.',
+      )
     }
 
     try {
@@ -729,7 +793,10 @@ export class AuthService {
       })
 
       if (!auth || !auth.oauthId) {
-        throw new Error('카카오 연동 정보를 찾을 수 없습니다.')
+        throw new BusinessException(
+          ErrorCode.RESOURCE_NOT_FOUND,
+          '카카오 연동 정보를 찾을 수 없습니다.',
+        )
       }
 
       await axios.post(
@@ -761,7 +828,8 @@ export class AuthService {
     const clientId = this.configService.get<string>('NAVER_CLIENT_ID')
     const clientSecret = this.configService.get<string>('NAVER_CLIENT_SECRET')
     if (!clientId || !clientSecret) {
-      throw new Error(
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
         'NAVER_CLIENT_ID 또는 NAVER_CLIENT_SECRET이 설정되지 않았습니다',
       )
     }
