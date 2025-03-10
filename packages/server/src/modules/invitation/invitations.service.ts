@@ -1,11 +1,6 @@
 // src/invitations/invitations.service.ts
 
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common'
+import { ForbiddenException, Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Invitation } from '@/entities/invitation.entity'
@@ -17,6 +12,8 @@ import { InvitationStatus } from '@/common/enums/invitation-status.enum'
 import { ManagerService } from '@/modules/manager/manager.service'
 import { InvitationResponseDto } from './dto/response/invitation-response.dto'
 import { InvitationsResponseDto } from './dto/response/invitations-response.dto'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class InvitationsService {
@@ -45,14 +42,20 @@ export class InvitationsService {
 
     // 자기 자신 초대 방지
     if (inviterUuid === createInvitationDto.inviteeUuid) {
-      throw new BadRequestException('자기 자신을 초대할 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '자기 자신을 초대할 수 없습니다.',
+      )
     }
 
     // 초대 타입에 따른 검증
     if (createInvitationDto.invitationType === InvitationType.GROUP) {
       // 그룹 초대 검증
       if (!createInvitationDto.groupId) {
-        throw new BadRequestException('그룹 ID가 필요합니다.')
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
+          '그룹 ID가 필요합니다.',
+        )
       }
 
       // 그룹 존재 확인
@@ -89,7 +92,10 @@ export class InvitationsService {
     })
 
     if (existingInvitation) {
-      throw new BadRequestException('이미 진행 중인 초대가 있습니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '이미 진행 중인 초대가 있습니다.',
+      )
     }
 
     // 새 초대장 생성 및 저장
@@ -118,7 +124,10 @@ export class InvitationsService {
     })
 
     if (!invitation) {
-      throw new NotFoundException('초대를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '초대를 찾을 수 없습니다.',
+      )
     }
 
     // 권한 확인
@@ -126,13 +135,15 @@ export class InvitationsService {
     const isInvitee = invitation.inviteeUuid === userUuid
 
     if (checkInvitee && !isInvitee) {
-      throw new ForbiddenException(
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
         '초대받은 사용자만 이 작업을 수행할 수 있습니다.',
       )
     }
 
     if (!checkInvitee && !isInviter) {
-      throw new ForbiddenException(
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
         '초대한 사용자만 이 작업을 수행할 수 있습니다.',
       )
     }
@@ -157,7 +168,10 @@ export class InvitationsService {
 
     // 대기 상태 확인
     if (invitation.status !== InvitationStatus.PENDING) {
-      throw new BadRequestException('대기 중인 초대만 수락할 수 있습니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '대기 중인 초대만 수락할 수 있습니다.',
+      )
     }
 
     // 초대 타입에 따른 처리
@@ -197,7 +211,10 @@ export class InvitationsService {
 
     // 대기 상태 확인
     if (invitation.status !== InvitationStatus.PENDING) {
-      throw new BadRequestException('대기 중인 초대만 거절할 수 있습니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '대기 중인 초대만 거절할 수 있습니다.',
+      )
     }
 
     // 초대 상태 업데이트
@@ -223,7 +240,10 @@ export class InvitationsService {
 
     // 대기 상태 확인
     if (invitation.status !== InvitationStatus.PENDING) {
-      throw new BadRequestException('대기 중인 초대만 취소할 수 있습니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '대기 중인 초대만 취소할 수 있습니다.',
+      )
     }
 
     // 초대 상태 업데이트
@@ -246,7 +266,10 @@ export class InvitationsService {
     })
 
     if (!invitation) {
-      throw new NotFoundException('초대장을 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '초대장을 찾을 수 없습니다.',
+      )
     }
 
     // 권한 확인: 초대한 사람이나 초대받은 사람만 조회 가능
