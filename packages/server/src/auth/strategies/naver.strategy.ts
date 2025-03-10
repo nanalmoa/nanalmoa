@@ -1,9 +1,10 @@
 import { PassportStrategy } from '@nestjs/passport'
 import { Strategy } from 'passport-naver-v2'
-import { Injectable, UnauthorizedException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { AuthService } from '../auth.service'
 import { AuthProvider } from 'src/entities/auth.entity'
-
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 @Injectable()
 export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
   constructor(private readonly authService: AuthService) {
@@ -42,7 +43,10 @@ export class NaverStrategy extends PassportStrategy(Strategy, 'naver') {
       done(null, validatedUser)
     } catch (error) {
       console.error('Naver auth error:', error)
-      done(new UnauthorizedException('네이버 인증 실패'), false)
+      done(
+        new BusinessException(ErrorCode.UNAUTHORIZED, '네이버 인증 실패'),
+        false,
+      )
     }
   }
 }

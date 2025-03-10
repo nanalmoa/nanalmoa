@@ -4,12 +4,8 @@ import {
   UseGuards,
   Post,
   Body,
-  BadRequestException,
   Put,
-  ConflictException,
   Delete,
-  NotFoundException,
-  InternalServerErrorException,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -31,6 +27,8 @@ import { DataSource } from 'typeorm'
 import { AuthProvider } from '@/entities/auth.entity'
 import { InjectDataSource } from '@nestjs/typeorm'
 import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @ApiTags('Users')
 @Controller('users')
@@ -101,7 +99,8 @@ export class UsersController {
     if (phoneNumber && phoneNumber !== currentUser.phoneNumber) {
       const isVerified = this.authService.isPhoneNumberVerified(phoneNumber)
       if (!isVerified) {
-        throw new BadRequestException(
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
           '전화번호 인증이 필요합니다. 먼저 인증을 완료해주세요.',
         )
       }
@@ -111,13 +110,17 @@ export class UsersController {
       // 이메일 중복 검사
       const isEmailTaken = await this.usersService.isEmailTaken(email, userUuid)
       if (isEmailTaken) {
-        throw new ConflictException('이미 사용 중인 이메일 주소입니다.')
+        throw new BusinessException(
+          ErrorCode.USER_EMAIL_DUPLICATED,
+          '이미 사용 중인 이메일 주소입니다.',
+        )
       }
 
       // 이메일 인증 확인
       const isVerified = this.authService.isEmailVerified(email)
       if (!isVerified) {
-        throw new BadRequestException(
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
           '이메일 인증이 필요합니다. 먼저 인증을 완료해주세요.',
         )
       }
@@ -157,7 +160,10 @@ export class UsersController {
       })
 
       if (!user) {
-        throw new NotFoundException('사용자를 찾을 수 없습니다.')
+        throw new BusinessException(
+          ErrorCode.USER_NOT_FOUND,
+          '사용자를 찾을 수 없습니다.',
+        )
       }
 
       // OAuth 서비스 연동 해제
@@ -186,10 +192,11 @@ export class UsersController {
     } catch (error) {
       await queryRunner.rollbackTransaction()
       console.error('회원 탈퇴 처리 중 오류:', error)
-      if (error instanceof NotFoundException) {
+      if (error instanceof BusinessException) {
         throw error
       }
-      throw new InternalServerErrorException(
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
         '회원 탈퇴 처리 중 오류가 발생했습니다.',
       )
     } finally {

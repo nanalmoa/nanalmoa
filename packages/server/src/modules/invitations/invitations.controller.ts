@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, NotFoundException } from '@nestjs/common'
+import { Controller, Get, UseGuards } from '@nestjs/common'
 import { InvitationsService } from './invitations.service'
 import { AuthGuard } from '@nestjs/passport'
 import {
@@ -10,6 +10,8 @@ import {
 import { InvitationsDto } from './dto/invitations.dto'
 import { UsersService } from '../users/users.service'
 import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @ApiTags('Invitations')
 @Controller('invitations')
@@ -37,7 +39,10 @@ export class InvitationsController {
   ): Promise<InvitationsDto[]> {
     const userExists = await this.usersService.checkUserExists(userUuid)
     if (!userExists) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        '사용자를 찾을 수 없습니다.',
+      )
     }
 
     return this.invitationService.getUserInvitations(userUuid)

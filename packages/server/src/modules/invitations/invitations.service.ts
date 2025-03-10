@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Not, Repository } from 'typeorm'
 import { GroupInvitation } from 'src/entities/group-invitation.entity'
@@ -12,6 +12,8 @@ import {
   InvitationsRole,
 } from './dto/invitations.dto'
 import { UsersService } from '../users/users.service'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class InvitationsService {
@@ -26,7 +28,10 @@ export class InvitationsService {
   async getUserInvitations(userUuid: string): Promise<InvitationsDto[]> {
     const userExists = await this.usersService.checkUserExists(userUuid)
     if (!userExists) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        '사용자를 찾을 수 없습니다.',
+      )
     }
 
     const groupInvitations = await this.groupInvitationRepository.find({

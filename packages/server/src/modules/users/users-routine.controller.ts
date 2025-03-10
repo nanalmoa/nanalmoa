@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Put,
-  UseGuards,
-  BadRequestException,
-} from '@nestjs/common'
+import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common'
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -19,6 +12,8 @@ import { UserRoutineResponseDto } from './dto/response-user-routine.dto'
 import { UpdateUserRoutineDto } from './dto/update-user-routine.dto'
 import { AuthGuard } from '@nestjs/passport'
 import { GetUserUuid } from '@/common/decorators/get-user-uuid.decorator'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @ApiTags('Users-Routine')
 @Controller('users-routine')
@@ -48,16 +43,22 @@ export class UsersRoutineController {
         updateDto,
       )
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BusinessException) {
         throw error
       }
       if (
         error instanceof Error &&
         error.message === '시간 순서가 올바르지 않습니다.'
       ) {
-        throw new BadRequestException(error.message)
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
+          error.message,
+        )
       }
-      throw new BadRequestException('잘못된 요청입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '잘못된 요청입니다.',
+      )
     }
   }
 
@@ -78,10 +79,13 @@ export class UsersRoutineController {
     try {
       return await this.usersRoutineService.getUserRoutine(userUuid)
     } catch (error) {
-      if (error instanceof BadRequestException) {
+      if (error instanceof BusinessException) {
         throw error
       }
-      throw new BadRequestException('잘못된 요청입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '잘못된 요청입니다.',
+      )
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import OpenAI from 'openai'
 import { Repository } from 'typeorm'
@@ -7,6 +7,8 @@ import { VoiceTranscriptionService } from './voice-transcription.service'
 import { CreateScheduleDto } from './dto/create-schedule.dto'
 import { Category } from '@/entities/category.entity'
 import { InjectRepository } from '@nestjs/typeorm'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class AiService {
@@ -139,7 +141,8 @@ export class AiService {
   private async validateUser(userUuid: string) {
     const userExists = await this.usersService.checkUserExists(userUuid)
     if (!userExists) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
         `해당 UUID : ${userUuid} 를 가진 사용자는 없습니다.`,
       )
     }
