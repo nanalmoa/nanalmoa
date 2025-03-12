@@ -6,9 +6,6 @@ import {
   UseGuards,
   Query,
   Req,
-  UnauthorizedException,
-  InternalServerErrorException,
-  BadRequestException,
 } from '@nestjs/common'
 import {
   ApiTags,
@@ -38,6 +35,8 @@ import {
   RefreshAccessTokenResponseSchema,
 } from './schema/response.schema'
 import { VerifyCodeDto } from './dto/verify-code.dto'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -68,7 +67,10 @@ export class AuthController {
 
   private async handleSocialLogin(code: string, provider: AuthProvider) {
     if (!code) {
-      throw new UnauthorizedException('인가 코드가 없습니다.')
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        '인가 코드가 없습니다.',
+      )
     }
 
     try {
@@ -96,7 +98,10 @@ export class AuthController {
       }
     } catch (error) {
       console.error(`${provider} login error:`, error)
-      throw new UnauthorizedException(`${provider} 로그인 실패`)
+      throw new BusinessException(
+        ErrorCode.UNAUTHORIZED,
+        `${provider} 로그인 실패`,
+      )
     }
   }
 
@@ -174,7 +179,10 @@ export class AuthController {
   async sendVerificationCode(@Body('phoneNumber') phoneNumber: string) {
     const result = await this.authService.sendVerificationCode(phoneNumber)
     if (!result) {
-      throw new InternalServerErrorException('인증 코드 전송에 실패했습니다')
+      throw new BusinessException(
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        '인증 코드 전송에 실패했습니다',
+      )
     }
     return { message: '인증 코드 전송 성공' }
   }
@@ -262,7 +270,10 @@ export class AuthController {
     try {
       const authHeader = req.headers.authorization
       if (!authHeader) {
-        throw new BadRequestException('인증 토큰이 없습니다.')
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
+          '인증 토큰이 없습니다.',
+        )
       }
 
       const [, token] = authHeader.split(' ')
@@ -270,7 +281,10 @@ export class AuthController {
       const decodedToken = this.jwtService.decode(token)
 
       if (!decodedToken || typeof decodedToken === 'string') {
-        throw new BadRequestException('유효하지 않은 토큰 형식입니다.')
+        throw new BusinessException(
+          ErrorCode.INVALID_TYPE_VALUE,
+          '유효하지 않은 토큰 형식입니다.',
+        )
       }
 
       const { sub: userUuid, socialProvider } = decodedToken
@@ -279,7 +293,10 @@ export class AuthController {
         this.jwtService.verify(token)
       } catch (error) {
         if (error.name !== 'TokenExpiredError') {
-          throw new UnauthorizedException('유효하지 않은 토큰입니다.')
+          throw new BusinessException(
+            ErrorCode.JWT_SIGNATURE_INVALID,
+            '유효하지 않은 토큰입니다.',
+          )
         }
       }
 
@@ -290,13 +307,13 @@ export class AuthController {
       )
       return newTokens
     } catch (error) {
-      if (
-        error instanceof BadRequestException ||
-        error instanceof UnauthorizedException
-      ) {
+      if (error instanceof BusinessException) {
         throw error
       }
-      throw new UnauthorizedException('액세스 토큰 갱신 실패')
+      throw new BusinessException(
+        ErrorCode.JWT_TOKEN_EXPIRED,
+        '액세스 토큰 갱신 실패',
+      )
     }
   }
 

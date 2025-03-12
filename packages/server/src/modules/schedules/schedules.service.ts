@@ -1,6 +1,6 @@
 import { ScheduleRecurring } from '@/entities/recurring-schedule.entity'
 import { Schedule } from '@/entities/schedule.entity'
-import { BadRequestException, Logger, NotFoundException } from '@nestjs/common'
+import { Logger } from '@nestjs/common'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -217,14 +217,20 @@ export class SchedulesService {
     })
 
     if (!category) {
-      throw new NotFoundException('Category not found.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '카테고리를 찾을 수 없습니다.',
+      )
     }
 
     const startDate = new Date(createScheduleDto.startDate)
     const endDate = new Date(createScheduleDto.endDate)
 
     if (endDate <= startDate) {
-      throw new BadRequestException('종료일은 시작일보다 이후여야 합니다.')
+      throw new BusinessException(
+        ErrorCode.SCHEDULE_INVALID_DATE_RANGE,
+        '종료일은 시작일보다 이후여야 합니다.',
+      )
     }
 
     if (createScheduleDto.recurringOptions) {
@@ -233,7 +239,8 @@ export class SchedulesService {
       )
 
       if (repeatEndDate <= endDate) {
-        throw new BadRequestException(
+        throw new BusinessException(
+          ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
           '반복 일정의 종료일은 일정의 종료일보다 이후여야 합니다.',
         )
       }
@@ -320,7 +327,8 @@ export class SchedulesService {
     }
 
     if (!schedule) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.SCHEDULE_NOT_FOUND,
         `해당 ID : ${scheduleId}를 가진 일정을 찾을 수 없습니다.`,
       )
     }
@@ -333,7 +341,8 @@ export class SchedulesService {
         instanceDate,
       )
       if (!isValidDate) {
-        throw new BadRequestException(
+        throw new BusinessException(
+          ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
           `지정된 날짜 ${instanceDate}는 이 반복 일정의 유효한 날짜가 아닙니다.`,
         )
       }
@@ -456,7 +465,8 @@ export class SchedulesService {
     }
 
     if (!schedule) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.SCHEDULE_NOT_FOUND,
         `ID가 ${scheduleId}인 일정을 찾을 수 없습니다.`,
       )
     }
@@ -468,7 +478,8 @@ export class SchedulesService {
         schedule.recurring.repeatEndDate &&
         schedule.recurring.repeatEndDate < targetDate
       ) {
-        throw new BadRequestException(
+        throw new BusinessException(
+          ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
           '삭제하려는 날짜가 반복 일정의 종료일보다 늦습니다.',
         )
       }

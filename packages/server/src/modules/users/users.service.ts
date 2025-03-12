@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Repository } from 'typeorm'
 import { User } from '@/entities/user.entity'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Auth } from '@/entities/auth.entity'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class UsersService {
@@ -15,14 +17,20 @@ export class UsersService {
 
   async getUserByUuid(userUuid: string): Promise<User> {
     if (!userUuid) {
-      throw new NotFoundException('사용자 UUID가 없습니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '사용자 UUID가 없습니다.',
+      )
     }
     const auth = await this.authRepository.findOne({
       where: { userUuid },
       relations: ['user'],
     })
     if (!auth || !auth.user) {
-      throw new NotFoundException(`사용자 UUID ${userUuid}를 찾을 수 없습니다.`)
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        `사용자 UUID ${userUuid}를 찾을 수 없습니다.`,
+      )
     }
 
     return auth.user
@@ -37,7 +45,10 @@ export class UsersService {
     )
     const validUsers = users.filter((user): user is User => user !== null)
     if (validUsers.length !== userUuids.length) {
-      throw new NotFoundException('일부 사용자를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        `사용자 UUID ${userUuids}를 찾을 수 없습니다.`,
+      )
     }
 
     return validUsers
@@ -48,7 +59,10 @@ export class UsersService {
       await this.getUserByUuid(userUuid)
       return true
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (
+        error instanceof BusinessException &&
+        error.getErrorCode().code === ErrorCode.USER_NOT_FOUND.code
+      ) {
         return false
       }
       throw error
@@ -96,7 +110,10 @@ export class UsersService {
   async updateUser(userUuid: string, updateData: Partial<User>): Promise<User> {
     const user = await this.userRepository.findOne({ where: { userUuid } })
     if (!user) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        '사용자를 찾을 수 없습니다.',
+      )
     }
 
     Object.assign(user, updateData)
@@ -124,7 +141,10 @@ export class UsersService {
   async findOne(userUuid: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { userUuid } })
     if (!user) {
-      throw new NotFoundException('사용자를 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.USER_NOT_FOUND,
+        '사용자를 찾을 수 없습니다.',
+      )
     }
     return user
   }

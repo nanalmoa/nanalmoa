@@ -1,10 +1,12 @@
-import { Injectable, BadRequestException } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { UserRoutine } from 'src/entities/user-routine.entity'
 import { UpdateUserRoutineDto } from './dto/update-user-routine.dto'
 import { UserRoutineResponseDto } from './dto/response-user-routine.dto'
 import { UsersService } from './users.service'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class UsersRoutineService {
@@ -19,7 +21,10 @@ export class UsersRoutineService {
     updateDto: UpdateUserRoutineDto,
   ): Promise<UserRoutineResponseDto> {
     if (!userUuid) {
-      throw new BadRequestException('User UUID is required')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '사용자 UUID가 필요합니다.',
+      )
     }
 
     await this.usersService.checkUserExists(userUuid)
@@ -50,7 +55,10 @@ export class UsersRoutineService {
 
   async getUserRoutine(userUuid: string): Promise<UserRoutineResponseDto> {
     if (!userUuid) {
-      throw new BadRequestException('User UUID is required')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '사용자 UUID가 필요합니다.',
+      )
     }
 
     await this.usersService.checkUserExists(userUuid)
@@ -79,7 +87,10 @@ export class UsersRoutineService {
         new Date(`1970-01-01T${times[i]}`) <=
         new Date(`1970-01-01T${times[i - 1]}`)
       ) {
-        throw new Error('시간 순서가 올바르지 않습니다.')
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
+          '시간 순서가 올바르지 않습니다.',
+        )
       }
     }
   }

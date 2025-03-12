@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { CreateGroupDto } from './dto/create-group.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
@@ -22,7 +16,8 @@ import { GroupSchedule } from '@/entities/group-schedule.entity'
 import { GroupInfo } from '../schedules/dto/create-schedule.dto'
 import { UserInfo } from '../users/dto/user-info-detail.dto'
 import { User } from '@/entities/user.entity'
-
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 @Injectable()
 export class GroupService {
   constructor(
@@ -50,7 +45,8 @@ export class GroupService {
     })
 
     if (existingGroup && existingGroup.group.groupName === groupName) {
-      throw new BadRequestException(
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
         '동일 그룹명을 가진 그룹에 소속되어 있습니다.',
       )
     }
@@ -83,7 +79,10 @@ export class GroupService {
     })
 
     if (!group) {
-      throw new NotFoundException('해당 그룹을 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '해당 그룹을 찾을 수 없습니다.',
+      )
     }
 
     const adminUserGroup = group.userGroups.find(
@@ -91,7 +90,10 @@ export class GroupService {
     )
 
     if (!adminUserGroup) {
-      throw new ForbiddenException('그룹 관리자만이 그룹을 삭제할 수 있습니다.')
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
+        '그룹 관리자만이 그룹을 삭제할 수 있습니다.',
+      )
     }
 
     await this.groupInvitationRepository.delete({
@@ -161,7 +163,10 @@ export class GroupService {
     })
 
     if (!requestingUserGroup) {
-      throw new ForbiddenException('당신은 해당 그룹의 멤버가 아닙니다.')
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
+        '당신은 해당 그룹의 멤버가 아닙니다.',
+      )
     }
 
     const userGroups = await this.userGroupRepository.find({
@@ -170,7 +175,8 @@ export class GroupService {
     })
 
     if (!userGroups || userGroups.length === 0) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
         `해당 그룹 ID : ${groupId} 를 가진 그룹의 구성원이 없습니다.`,
       )
     }
@@ -202,7 +208,10 @@ export class GroupService {
     })
 
     if (!group) {
-      throw new NotFoundException('해당 그룹을 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '해당 그룹을 찾을 수 없습니다.',
+      )
     }
 
     // 요청자가 그룹의 관리자인지 확인
@@ -210,7 +219,10 @@ export class GroupService {
       (ug) => ug.userUuid === adminUuid && ug.isAdmin,
     )
     if (!adminUserGroup) {
-      throw new ForbiddenException('그룹 관리자만이 멤버를 추방할 수 있습니다.')
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
+        '그룹 관리자만이 멤버를 추방할 수 있습니다.',
+      )
     }
 
     // 추방할 멤버가 그룹에 존재하는지 확인
@@ -219,12 +231,18 @@ export class GroupService {
     })
 
     if (!memberUserGroup) {
-      throw new NotFoundException('해당 멤버를 그룹에서 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '해당 멤버를 그룹에서 찾을 수 없습니다.',
+      )
     }
 
     // 관리자가 자신을 추방하려는 경우 방지
     if (adminUuid === memberUuid) {
-      throw new ForbiddenException('자신을 그룹에서 추방할 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
+        '자신을 그룹에서 추방할 수 없습니다.',
+      )
     }
 
     // 멤버 추방 (UserGroup 엔티티 삭제)
@@ -250,13 +268,19 @@ export class GroupService {
     })
 
     if (!group) {
-      throw new NotFoundException('해당 그룹을 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '해당 그룹을 찾을 수 없습니다.',
+      )
     }
 
     const userGroup = group.userGroups.find((ug) => ug.userUuid === userUuid)
 
     if (!userGroup) {
-      throw new ForbiddenException('당신은 해당 그룹의 멤버가 아닙니다.')
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
+        '당신은 해당 그룹의 멤버가 아닙니다.',
+      )
     }
 
     const memberCount = group.userGroups.length
@@ -295,7 +319,8 @@ export class GroupService {
         where: { groupId: info.groupId },
       })
       if (!group) {
-        throw new BadRequestException(
+        throw new BusinessException(
+          ErrorCode.INVALID_INPUT_VALUE,
           `그룹 ID ${info.groupId}를 찾을 수 없습니다.`,
         )
       }
@@ -318,7 +343,8 @@ export class GroupService {
     })
 
     if (userGroups.length === 0) {
-      throw new NotFoundException(
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
         `해당 그룹ID :  ${groupId} 를 가진 그룹의 멤버가 없습니다.`,
       )
     }
@@ -363,12 +389,13 @@ export class GroupService {
           }
         }
       } catch (error) {
-        if (error instanceof NotFoundException) {
+        if (error instanceof BusinessException) {
           console.error(
             `그룹 ${group.groupId}에 대한 사용자 정보를 찾을 수 없습니다: ${error.message}`,
           )
         } else {
-          throw new InternalServerErrorException(
+          throw new BusinessException(
+            ErrorCode.INTERNAL_SERVER_ERROR,
             `그룹 멤버 제거 중 오류가 발생했습니다: ${error.message}`,
           )
         }
@@ -391,7 +418,10 @@ export class GroupService {
     })
 
     if (existingMember) {
-      throw new BadRequestException('이미 그룹의 멤버입니다.')
+      throw new BusinessException(
+        ErrorCode.INVALID_INPUT_VALUE,
+        '이미 그룹의 멤버입니다.',
+      )
     }
   }
 
@@ -404,7 +434,10 @@ export class GroupService {
       where: { groupId },
     })
     if (!group) {
-      throw new NotFoundException('그룹을 찾을 수 없습니다.')
+      throw new BusinessException(
+        ErrorCode.RESOURCE_NOT_FOUND,
+        '그룹을 찾을 수 없습니다.',
+      )
     }
     return group
   }
@@ -458,7 +491,10 @@ export class GroupService {
     })
 
     if (!userGroup) {
-      throw new ForbiddenException('해당 그룹의 관리자가 아닙니다.')
+      throw new BusinessException(
+        ErrorCode.HANDLE_ACCESS_DENIED,
+        '해당 그룹의 관리자가 아닙니다.',
+      )
     }
 
     return true

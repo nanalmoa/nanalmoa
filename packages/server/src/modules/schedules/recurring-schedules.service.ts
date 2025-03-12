@@ -4,9 +4,11 @@ import { ResponseScheduleDto } from './dto/response-schedule.dto'
 import { InjectRepository } from '@nestjs/typeorm'
 import { LessThanOrEqual, MoreThanOrEqual, Repository } from 'typeorm'
 import { ScheduleRecurring } from '@/entities/recurring-schedule.entity'
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { ScheduleUtils } from './schedules.util'
 import { RecurringInfo } from './dto/create-schedule.dto'
+import { BusinessException } from '@/common/exception/business.exception'
+import { ErrorCode } from '@/common/exception/error-codes.enum'
 
 @Injectable()
 export class RecurringSchedulesService {
@@ -473,36 +475,42 @@ export class RecurringSchedulesService {
     switch (repeatType) {
       case 'weekly':
         if (recurringMonthOfYear !== undefined) {
-          throw new BadRequestException(
+          throw new BusinessException(
+            ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
             '주간 반복에서는 monthOfYear를 설정할 수 없습니다.',
           )
         }
         if (!recurringDaysOfWeek || recurringDaysOfWeek.length === 0) {
-          throw new BadRequestException(
+          throw new BusinessException(
+            ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
             '주간 반복에서는 daysOfWeek를 반드시 설정해야 합니다.',
           )
         }
         break
       case 'monthly':
         if (recurringMonthOfYear !== undefined) {
-          throw new BadRequestException(
+          throw new BusinessException(
+            ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
             '월간 반복에서는 monthOfYear를 설정할 수 없습니다.',
           )
         }
         if (recurringDayOfMonth === undefined) {
-          throw new BadRequestException(
+          throw new BusinessException(
+            ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
             '월간 반복에서는 dayOfMonth를 반드시 설정해야 합니다.',
           )
         }
         break
       case 'yearly':
         if (recurringMonthOfYear === undefined) {
-          throw new BadRequestException(
+          throw new BusinessException(
+            ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
             '연간 반복에서는 monthOfYear를 반드시 설정해야 합니다.',
           )
         }
         if (recurringDayOfMonth === undefined) {
-          throw new BadRequestException(
+          throw new BusinessException(
+            ErrorCode.SCHEDULE_INVALID_RECURRING_CONFIG,
             '연간 반복에서는 dayOfMonth를 반드시 설정해야 합니다.',
           )
         }
