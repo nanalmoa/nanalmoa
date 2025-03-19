@@ -6,7 +6,7 @@ on:
       - main # 메인 브랜치에 푸시될 때만 실행
 
 jobs:
-  # 변경된 파일을 감지하는 작업
+  # 변경된 파일을 감지하는 작업 (정보 제공용으로만 유지)
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
@@ -46,7 +46,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Build client
-        if: ${{ needs.detect-changes.outputs.client == 'true' || needs.detect-changes.outputs.common == 'true' }}
+        # 조건부 실행 제거 - 항상 빌드
         run: |
           # 클라이언트 환경변수 파일 생성
           echo "${{ secrets.CLIENT_ENV }}" > packages/client/.env.production
@@ -55,7 +55,7 @@ jobs:
           yarn build:client
 
       - name: Build server
-        if: ${{ needs.detect-changes.outputs.server == 'true' || needs.detect-changes.outputs.common == 'true' }}
+        # 조건부 실행 제거 - 항상 빌드
         run: |
           # 서버 환경변수 파일 생성
           echo "${{ secrets.SERVER_ENV }}" > packages/server/.env
@@ -68,21 +68,17 @@ jobs:
           # 전체 프로젝트 구조 복사
           mkdir -p deploy/packages
 
-          # 클라이언트 변경이 있는 경우
-          if [ "${{ needs.detect-changes.outputs.client }}" == "true" ] || [ "${{ needs.detect-changes.outputs.common }}" == "true" ]; then
-            mkdir -p deploy/packages/client
-            cp -r packages/client/dist deploy/packages/client/
-          fi
+          # 클라이언트 파일 복사 (항상 복사)
+          mkdir -p deploy/packages/client
+          cp -r packages/client/dist deploy/packages/client/
 
-          # 서버 변경이 있는 경우
-          if [ "${{ needs.detect-changes.outputs.server }}" == "true" ] || [ "${{ needs.detect-changes.outputs.common }}" == "true" ]; then
-            mkdir -p deploy/packages/server
-            cp -r packages/server/dist deploy/packages/server/
-            cp packages/server/package.json deploy/packages/server/
-            
-            # 서버 환경변수 파일 복사
-            echo "${{ secrets.SERVER_ENV }}" > deploy/packages/server/.env
-          fi
+          # 서버 파일 복사 (항상 복사)
+          mkdir -p deploy/packages/server
+          cp -r packages/server/dist deploy/packages/server/
+          cp packages/server/package.json deploy/packages/server/
+
+          # 서버 환경변수 파일 복사
+          echo "${{ secrets.SERVER_ENV }}" > deploy/packages/server/.production.env
 
           # 공통 파일 복사
           cp package.json deploy/
@@ -123,49 +119,43 @@ jobs:
             mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa
             tar -xzf deploy.tar.gz -C /home/${{ secrets.EC2_USERNAME }}
             
-            # 클라이언트 변경이 있는 경우
-            if [ -d "/home/${{ secrets.EC2_USERNAME }}/deploy/packages/client" ]; then
-              rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/dist
-              mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client
-              cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/client/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/
-              
-              # PM2 프론트엔드 재시작 (없으면 시작)
-              if pm2 list | grep -q "nanalmoa-frontend"; then
-                pm2 restart nanalmoa-frontend
-              else
-                cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa
-                pm2 start --name nanalmoa-frontend "npx serve -s packages/client/dist -p 3000"
-              fi
+            # 클라이언트 파일 복사 (항상 복사)
+            rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/dist
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client
+            cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/client/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/
+            
+            # PM2 프론트엔드 재시작 (없으면 시작)
+            if pm2 list | grep -q "nanalmoa-frontend"; then
+              pm2 restart nanalmoa-frontend
+            else
+              cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa
+              pm2 start --name nanalmoa-frontend "npx serve -s packages/client/dist -p 3000"
             fi
             
-            # 서버 변경이 있는 경우
-            if [ -d "/home/${{ secrets.EC2_USERNAME }}/deploy/packages/server" ]; then
-              rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/dist
-              mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
-              cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
-              cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
-              
-              # .env 파일 복사
-              cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/.env /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
-              
-              # 서버 의존성 설치 및 재시작
-              cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
-              yarn install --production
-              
-              # PM2 백엔드 재시작 (없으면 시작)
-              if pm2 list | grep -q "nanalmoa-backend"; then
-                pm2 restart nanalmoa-backend
-              else
-                cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa
-                pm2 start --name nanalmoa-backend packages/server/dist/main.js
-              fi
+            # 서버 파일 복사 (항상 복사)
+            rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/dist
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
+            cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
+            
+            # .env 파일 복사
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/.env /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
+            
+            # 서버 의존성 설치 및 재시작
+            cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
+            yarn install --production
+            
+            # PM2 백엔드 재시작 (없으면 시작)
+            if pm2 list | grep -q "nanalmoa-backend"; then
+              pm2 restart nanalmoa-backend
+            else
+              cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa
+              pm2 start --name nanalmoa-backend packages/server/dist/main.js
             fi
             
             # 공통 파일 변경 처리
-            if [ -f "/home/${{ secrets.EC2_USERNAME }}/deploy/package.json" ]; then
-              cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
-              cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/yarn.lock /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
-            fi
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/yarn.lock /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
             
             # ecosystem 파일이 있으면 복사
             if [ -f "/home/${{ secrets.EC2_USERNAME }}/deploy/ecosystem.config.js" ]; then
