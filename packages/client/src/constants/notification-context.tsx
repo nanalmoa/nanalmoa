@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useRef } from 'react'
+import React, { createContext, useRef } from 'react'
 import logo from '@/assets/svgs/logo.svg'
 import useThrottle from '@/hooks/use-throttle'
 
@@ -34,18 +34,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
   }
 
   // 유저가 푸시 알림을 허용하지 않았다면
-  if (Notification.permission !== 'granted') {
-    Notification.requestPermission()
-      .then((permission) => {
+  const requestNotificationPermission = async () => {
+    if (Notification.permission === 'default') {
+      try {
+        const permission = await Notification.requestPermission()
         if (permission !== 'granted') {
           console.log('알림 권한이 거부되었습니다.')
-          return
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('알림 권한 요청 중 오류 발생:', error)
-      })
+      }
+    }
   }
+
+  // 권한 요청
+  requestNotificationPermission()
 
   // 유저가 푸시 알림을 클릭하면, 푸시 알림이 일어난 화면으로 이동하기
   const setNotificationClickEvent = () => {
@@ -95,14 +98,4 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
     </NotificationContext.Provider>
   )
-}
-
-export const usePushNotification = () => {
-  const context = useContext(NotificationContext)
-  if (!context) {
-    throw new Error(
-      'useNotification must be used within a NotificationProvider',
-    )
-  }
-  return context
 }
