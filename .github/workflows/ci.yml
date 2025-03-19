@@ -1,81 +1,141 @@
-name: CI Pipeline
+name: Deploy to EC2
 
-# 워크플로우가 실행될 조건 설정
 on:
-  # main 또는 release 브랜치에 push가 발생했을 때
-  # push:
-  #   branches: [main, release]
-  # main 또는 release 브랜치로 PR이 생성/수정되었을 때
-  pull_request:
-    branches: [main, release]
+  push:
+    branches:
+      - main # 메인 브랜치에 푸시될 때만 실행
 
 jobs:
   # 변경된 파일을 감지하는 작업
   detect-changes:
     runs-on: ubuntu-latest
-    # 이 작업의 출력을 다른 작업에서 사용할 수 있도록 설정 -> true/false값으로 변환해서 밑에서 해당 변수 활용
     outputs:
       client: ${{ steps.filter.outputs.client }}
       server: ${{ steps.filter.outputs.server }}
+      common: ${{ steps.filter.outputs.common }}
     steps:
-      # 코드 체크아웃
       - uses: actions/checkout@v3
-      # 변경된 파일 경로를 필터링하는 액션 실행
       - uses: dorny/paths-filter@v2
         id: filter
         with:
           filters: |
-            # client 패키지의 변경사항 감지
             client:
               - 'packages/client/**'
-            # server 패키지의 변경사항 감지
             server:
               - 'packages/server/**'
-            # 공통 설정 파일의 변경사항 감지
             common:
               - 'package.json'
               - 'yarn.lock'
 
-  # 클라이언트 빌드 작업
-  client:
-    # detect-changes 작업이 완료된 후 실행
+  # 빌드 및 배포 작업
+  build-and-deploy:
     needs: detect-changes
-    # client 패키지가 변경되었을 때만 실행
-    if: ${{ needs.detect-changes.outputs.client == 'true' }}
     runs-on: ubuntu-latest
+
     steps:
-      # 코드 체크아웃
-      - uses: actions/checkout@v3
-      # Node.js 환경 설정
-      - uses: actions/setup-node@v3
-        with:
-          # .nvmrc 파일에 지정된 Node.js 버전 사용
-          node-version-file: '.nvmrc'
-          # yarn 캐시 사용
-          cache: 'yarn'
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # 의존성 설치 (--frozen-lockfile: yarn.lock 파일과 정확히 일치하는 버전 설치)
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile
-
-      # 클라이언트 빌드 실행
-      - name: Build Client
-        run: yarn build:client
-
-  # 서버 빌드 작업
-  server:
-    needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.server == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
 
-      - name: Install Dependencies
+      - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build Server
+      - name: Build client
+        if: ${{ needs.detect-changes.outputs.client == 'true' || needs.detect-changes.outputs.common == 'true' }}
+        run: |
+          # .env.production 파일의 URL 수정
+          echo "VITE_BASE_URL = 'https://www.nanal-moa.site/api'" > packages/client/.env.production
+          echo "VITE_KAKAO_REST_API_KEY = '593ed6079c3fb065fb4d32e61fbd0a7d'" >> packages/client/.env.production
+          echo "VITE_NAVER_CLIENT_ID = 'uvxuOi5uIwFNm90NkkkU'" >> packages/client/.env.production
+
+          yarn build:client
+
+      - name: Build server
+        if: ${{ needs.detect-changes.outputs.server == 'true' || needs.detect-changes.outputs.common == 'true' }}
         run: yarn build:server
+
+      - name: Compress build artifacts
+        run: |
+          mkdir -p deploy
+
+          # 클라이언트 변경이 있는 경우에만 클라이언트 파일 복사
+          if [ "${{ needs.detect-changes.outputs.client }}" == "true" ] || [ "${{ needs.detect-changes.outputs.common }}" == "true" ]; then
+            cp -r packages/client/dist deploy/client
+          fi
+
+          # 서버 변경이 있는 경우에만 서버 파일 복사
+          if [ "${{ needs.detect-changes.outputs.server }}" == "true" ] || [ "${{ needs.detect-changes.outputs.common }}" == "true" ]; then
+            cp -r packages/server/dist deploy/server
+            cp packages/server/package.json deploy/server/
+          fi
+
+          # 공통 파일 복사
+          cp package.json deploy/
+          cp yarn.lock deploy/
+
+          tar -czf deploy.tar.gz deploy
+
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add EC2 host key to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          # 빌드된 파일을 EC2로 전송
+          scp -r deploy.tar.gz ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/
+
+          # SSH로 접속하여 배포 명령 실행
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
+            # 이전 배포 파일 백업 (선택 사항)
+            timestamp=$(date +%Y%m%d%H%M%S)
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/backups
+            if [ -d "/home/${{ secrets.EC2_USERNAME }}/nanalmoa" ]; then
+              tar -czf /home/${{ secrets.EC2_USERNAME }}/backups/nanalmoa-$timestamp.tar.gz /home/${{ secrets.EC2_USERNAME }}/nanalmoa
+            fi
+            
+            # 압축 해제 및 설치
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa
+            tar -xzf deploy.tar.gz -C /home/${{ secrets.EC2_USERNAME }}
+            
+            # 클라이언트 변경이 있는 경우
+            if [ -d "/home/${{ secrets.EC2_USERNAME }}/deploy/client" ]; then
+              rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/client
+              mv /home/${{ secrets.EC2_USERNAME }}/deploy/client /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
+              pm2 restart nanalmoa-frontend
+            fi
+            
+            # 서버 변경이 있는 경우
+            if [ -d "/home/${{ secrets.EC2_USERNAME }}/deploy/server" ]; then
+              rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/server
+              mv /home/${{ secrets.EC2_USERNAME }}/deploy/server /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
+              
+              # 서버 의존성 설치 및 재시작
+              cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa/server
+              yarn install --production
+              pm2 restart nanalmoa-backend
+            fi
+            
+            # 공통 파일 변경 처리
+            if [ -f "/home/${{ secrets.EC2_USERNAME }}/deploy/package.json" ]; then
+              mv /home/${{ secrets.EC2_USERNAME }}/deploy/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
+              mv /home/${{ secrets.EC2_USERNAME }}/deploy/yarn.lock /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
+            fi
+            
+            # 임시 디렉토리 정리
+            rm -rf /home/${{ secrets.EC2_USERNAME }}/deploy
+            rm /home/${{ secrets.EC2_USERNAME }}/deploy.tar.gz
+            
+            # Nginx 재시작 (필요한 경우)
+            sudo systemctl restart nginx
+          EOF
