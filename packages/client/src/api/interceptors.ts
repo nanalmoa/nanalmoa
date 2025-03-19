@@ -60,10 +60,11 @@ export const handleAuthError = async (error: AxiosError) => {
 
       originalRequest.headers.retry = true
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+      return baseAPI(originalRequest)
     } catch (error) {
       return Promise.reject(error)
     }
-
-    return baseAPI(originalRequest)
   }
+
+  return Promise.reject(error)
 }
