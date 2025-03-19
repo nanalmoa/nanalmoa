@@ -1,7 +1,7 @@
 import { toast, ToastContainerProps } from 'react-toastify'
 
 interface IErrorCodeProps {
-  status: string | number
+  status: number
   message: string
 }
 
