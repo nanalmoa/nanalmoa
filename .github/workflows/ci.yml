@@ -48,16 +48,20 @@ jobs:
       - name: Build client
         if: ${{ needs.detect-changes.outputs.client == 'true' || needs.detect-changes.outputs.common == 'true' }}
         run: |
-          # .env.production 파일의 URL 수정
-          echo "VITE_BASE_URL = 'https://www.nanal-moa.site/api'" > packages/client/.env.production
-          echo "VITE_KAKAO_REST_API_KEY = '593ed6079c3fb065fb4d32e61fbd0a7d'" >> packages/client/.env.production
-          echo "VITE_NAVER_CLIENT_ID = 'uvxuOi5uIwFNm90NkkkU'" >> packages/client/.env.production
+          # 클라이언트 환경변수 파일 생성
+          echo "${{ secrets.CLIENT_ENV }}" > packages/client/.env.production
 
+          # 빌드 실행
           yarn build:client
 
       - name: Build server
         if: ${{ needs.detect-changes.outputs.server == 'true' || needs.detect-changes.outputs.common == 'true' }}
-        run: yarn build:server
+        run: |
+          # 서버 환경변수 파일 생성
+          echo "${{ secrets.SERVER_ENV }}" > packages/server/.env
+
+          # 빌드 실행
+          yarn build:server
 
       - name: Compress build artifacts
         run: |
@@ -72,6 +76,9 @@ jobs:
           if [ "${{ needs.detect-changes.outputs.server }}" == "true" ] || [ "${{ needs.detect-changes.outputs.common }}" == "true" ]; then
             cp -r packages/server/dist deploy/server
             cp packages/server/package.json deploy/server/
+            
+            # 서버 환경변수 파일 복사
+            echo "${{ secrets.SERVER_ENV }}" > deploy/server/.env
           fi
 
           # 공통 파일 복사
@@ -136,6 +143,6 @@ jobs:
             rm -rf /home/${{ secrets.EC2_USERNAME }}/deploy
             rm /home/${{ secrets.EC2_USERNAME }}/deploy.tar.gz
             
-            # Nginx 재시작 (필요한 경우)
+            # Nginx 재시작 
             sudo systemctl restart nginx
           EOF
