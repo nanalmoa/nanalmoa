@@ -13,7 +13,9 @@ declare const module: any
 async function bootstrap() {
   initializeTransactionalContext() // Initialize TypeORM transaction
 
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'debug', 'log', 'verbose'],
+  })
 
   app.setGlobalPrefix('api')
 
