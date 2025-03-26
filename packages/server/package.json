@@ -31,7 +31,7 @@
     "seed:prod": "cross-env NODE_ENV=production ts-node ../../node_modules/typeorm-extension/bin/cli.cjs seed:run -d ./dist/dataSource.js",
     "seed:create": "cross-env NODE_ENV=development ts-node ../../node_modules/typeorm-extension/bin/cli.cjs seed:create",
     "schema:drop": "cross-env NODE_ENV=production ts-node ../../node_modules/typeorm/cli.js schema:drop -d ./dist/dataSource.js",
-    "schema:sync:dev": "cross-env NODE_ENV=development ts-node ../../node_modules/typeorm/cli.js schema:sync -d ./dist/dataSource.js", 
+    "schema:sync:dev": "cross-env NODE_ENV=development ts-node ../../node_modules/typeorm/cli.js schema:sync -d ./dist/dataSource.js",
     "schema:sync:prod": "cross-env NODE_ENV=production ts-node ../../node_modules/typeorm/cli.js schema:sync -d ./dist/dataSource.js",
     "db:migrate": "cross-env NODE_ENV=development npm run typeorm migration:run -- -d ./dist/dataSource.js",
     "db:migrate:revert": "cross-env NODE_ENV=development npm run typeorm migration:revert -- -d ./dist/dataSource.js",
@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@google-cloud/vision": "^4.3.2",
+    "cross-env": "^7.0.3",
     "@nestjs/axios": "^3.0.3",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.3",
