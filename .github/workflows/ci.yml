@@ -103,16 +103,6 @@ jobs:
       - name: Transfer files to EC2
         run: scp deploy.tar.gz ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/
 
-      - name: Create backup directory
-        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p /home/${{ secrets.EC2_USERNAME }}/backups"
-
-      - name: Backup previous deployment (if exists)
-        run: |
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "if [ -d '/home/${{ secrets.EC2_USERNAME }}/nanalmoa' ]; then \
-            timestamp=\$(date +%Y%m%d%H%M%S); \
-            tar -czf /home/${{ secrets.EC2_USERNAME }}/backups/nanalmoa-\$timestamp.tar.gz /home/${{ secrets.EC2_USERNAME }}/nanalmoa; \
-          fi"
-
       - name: Extract deployment files
         run: |
           ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa; \
