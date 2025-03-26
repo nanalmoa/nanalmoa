@@ -14,7 +14,7 @@ jobs:
       server: ${{ steps.filter.outputs.server }}
       common: ${{ steps.filter.outputs.common }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v2
         id: filter
         with:
@@ -31,10 +31,11 @@ jobs:
   build-and-deploy:
     needs: detect-changes
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -45,34 +46,29 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build client
-        # 조건부 실행 제거 - 항상 빌드
+      - name: Create environment files
         run: |
           # 클라이언트 환경변수 파일 생성
           echo "${{ secrets.CLIENT_ENV }}" > packages/client/.env.production
 
-          # 빌드 실행
-          yarn build:client
-
-      - name: Build server
-        # 조건부 실행 제거 - 항상 빌드
-        run: |
           # 서버 환경변수 파일 생성
           echo "${{ secrets.SERVER_ENV }}" > packages/server/.env
 
-          # 빌드 실행
-          yarn build:server
+      - name: Build client
+        run: yarn build:client
 
-      - name: Compress build artifacts
+      - name: Build server
+        run: yarn build:server
+
+      - name: Prepare deployment files
         run: |
-          # 전체 프로젝트 구조 복사
           mkdir -p deploy/packages
 
-          # 클라이언트 파일 복사 (항상 복사)
+          # 클라이언트 파일 복사
           mkdir -p deploy/packages/client
           cp -r packages/client/dist deploy/packages/client/
 
-          # 서버 파일 복사 (항상 복사)
+          # 서버 파일 복사
           mkdir -p deploy/packages/server
           cp -r packages/server/dist deploy/packages/server/
           cp packages/server/package.json deploy/packages/server/
@@ -91,84 +87,88 @@ jobs:
 
           tar -czf deploy.tar.gz deploy
 
-      - name: Set up SSH
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "Host *
+            ServerAliveInterval 60
+            ServerAliveCountMax 30" > ~/.ssh/config
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Set up SSH Agent
         uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add EC2 host key to known hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+      - name: Transfer files to EC2
+        run: scp deploy.tar.gz ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/
 
-      - name: Deploy to EC2
-        run: |
-          # 빌드된 파일을 EC2로 전송
-          scp -r deploy.tar.gz ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USERNAME }}/
+      - name: Create backup directory
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p /home/${{ secrets.EC2_USERNAME }}/backups"
 
-          # SSH로 접속하여 배포 명령 실행
-          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} << 'EOF'
-            # 이전 배포 파일 백업 (선택 사항)
-            timestamp=$(date +%Y%m%d%H%M%S)
-            mkdir -p /home/${{ secrets.EC2_USERNAME }}/backups
-            if [ -d "/home/${{ secrets.EC2_USERNAME }}/nanalmoa" ]; then
-              tar -czf /home/${{ secrets.EC2_USERNAME }}/backups/nanalmoa-$timestamp.tar.gz /home/${{ secrets.EC2_USERNAME }}/nanalmoa
-            fi
-            
-            # 압축 해제 및 설치
-            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa
-            tar -xzf deploy.tar.gz -C /home/${{ secrets.EC2_USERNAME }}
-            
-            # 클라이언트 파일 복사 (항상 복사)
-            rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/dist
-            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client
-            cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/client/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/
-            
-            # PM2 프론트엔드 재시작 (없으면 시작)
-            if pm2 list | grep -q "nanalmoa-frontend"; then
-              pm2 restart nanalmoa-frontend
-            else
-              cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa
-              pm2 start --name nanalmoa-frontend "npx serve -s packages/client/dist -p 3000"
-            fi
-            
-            # 서버 파일 복사 (항상 복사)
-            rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/dist
-            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
-            cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
-            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
-            
-            # .env 파일 복사
-            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/.production.env /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/.env
-            
-            # 서버 의존성 설치 및 재시작
-            cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
-            yarn install --production
-            
-            # PM2 백엔드 재시작 (없으면 시작)
-            if pm2 list | grep -q "nanalmoa-backend"; then
-              pm2 restart nanalmoa-backend
-            else
-              cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa
-              pm2 start --name nanalmoa-backend packages/server/dist/main.js
-            fi
-            
-            # 공통 파일 변경 처리
-            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
-            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/yarn.lock /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
-            
-            # ecosystem 파일이 있으면 복사
-            if [ -f "/home/${{ secrets.EC2_USERNAME }}/deploy/ecosystem.config.js" ]; then
-              cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/ecosystem.config.js /home/${{ secrets.EC2_USERNAME }}/nanalmoa/
-            fi
-            
-            # PM2 상태 저장
-            pm2 save
-            
-            # 임시 디렉토리 정리
-            rm -rf /home/${{ secrets.EC2_USERNAME }}/deploy
-            rm /home/${{ secrets.EC2_USERNAME }}/deploy.tar.gz
-            
-            # Nginx 재시작 
-            sudo systemctl restart nginx
-          EOF
+      - name: Backup previous deployment (if exists)
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "if [ -d '/home/${{ secrets.EC2_USERNAME }}/nanalmoa' ]; then \
+            timestamp=\$(date +%Y%m%d%H%M%S); \
+            tar -czf /home/${{ secrets.EC2_USERNAME }}/backups/nanalmoa-\$timestamp.tar.gz /home/${{ secrets.EC2_USERNAME }}/nanalmoa; \
+          fi"
+
+      - name: Extract deployment files
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa; \
+            tar -xzf deploy.tar.gz -C /home/${{ secrets.EC2_USERNAME }}"
+
+      - name: Deploy client files
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/dist; \
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client; \
+            cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/client/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/client/"
+
+      - name: Deploy server files
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "rm -rf /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/dist; \
+            mkdir -p /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server; \
+            cp -r /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/dist /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/; \
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/; \
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/.production.env /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/.env"
+
+      - name: Install server dependencies
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server && yarn install --production"
+
+      - name: Update common files
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/; \
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/yarn.lock /home/${{ secrets.EC2_USERNAME }}/nanalmoa/; \
+            if [ -f '/home/${{ secrets.EC2_USERNAME }}/deploy/ecosystem.config.js' ]; then \
+              cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/ecosystem.config.js /home/${{ secrets.EC2_USERNAME }}/nanalmoa/; \
+            fi"
+
+      - name: Restart frontend service
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "if pm2 list | grep -q 'nanalmoa-frontend'; then \
+            pm2 restart nanalmoa-frontend; \
+          else \
+            cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa && \
+            pm2 start --name nanalmoa-frontend 'npx serve -s packages/client/dist -p 3000'; \
+          fi"
+
+      - name: Restart backend service
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "if pm2 list | grep -q 'nanalmoa-backend'; then \
+            pm2 restart nanalmoa-backend; \
+          else \
+            cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa && \
+            pm2 start --name nanalmoa-backend packages/server/dist/main.js; \
+          fi"
+
+      - name: Save PM2 configuration
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "pm2 save"
+
+      - name: Restart Nginx
+        run: ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "sudo systemctl restart nginx"
+
+      - name: Clean up deployment files
+        run: |
+          ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "rm -rf /home/${{ secrets.EC2_USERNAME }}/deploy; \
+            rm /home/${{ secrets.EC2_USERNAME }}/deploy.tar.gz"
