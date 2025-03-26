@@ -139,7 +139,7 @@ jobs:
             cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/package.json /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
             
             # .env 파일 복사
-            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/.env /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/
+            cp -f /home/${{ secrets.EC2_USERNAME }}/deploy/packages/server/.production.env /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server/.env
             
             # 서버 의존성 설치 및 재시작
             cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa/packages/server
