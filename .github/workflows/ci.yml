@@ -146,10 +146,10 @@ jobs:
       - name: Restart backend service
         run: |
           ssh ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} "if pm2 list | grep -q 'nanalmoa-backend'; then \
-            pm2 restart nanalmoa-backend; \
+            NODE_ENV=production pm2 restart nanalmoa-backend --update-env; \
           else \
             cd /home/${{ secrets.EC2_USERNAME }}/nanalmoa && \
-            pm2 start --name nanalmoa-backend packages/server/dist/main.js; \
+            NODE_ENV=production pm2 start packages/server/dist/main.js --name nanalmoa-backend; \
           fi"
 
       - name: Save PM2 configuration
