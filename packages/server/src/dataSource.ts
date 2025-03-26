@@ -50,7 +50,8 @@ export const dataSourceOptions: DataSourceOptions & SeederOptions = {
   // extra: {
   //   timezone: '+09:00',
   // },
-  synchronize: process.env.NODE_ENV === 'production' ? false : true,
+  //  synchronize: process.env.NODE_ENV === 'production' ? false : true,
+  synchronize: true,
 }
 
 export const dataSource = new DataSource(dataSourceOptions)
