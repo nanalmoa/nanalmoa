@@ -160,6 +160,12 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           `Unhandled Error: ${exception.message}`,
           exception.stack,
         )
+
+        // 추가된 코드
+        this.logger.error(
+          `Detailed error in /api/invitations/user: ${exception.message}`,
+          exception.stack,
+        )
       } else {
         message = errorCodeObj.message
         this.logger.error(`Unknown Exception: ${JSON.stringify(exception)}`)

@@ -14,10 +14,15 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: any) {
-    // console.log('payload', payload);
-    return {
-      userUuid: payload.sub,
-      socialProvider: payload.socialProvider,
+    try {
+      console.log('JWT payload:', payload)
+      return {
+        userUuid: payload.sub,
+        socialProvider: payload.socialProvider,
+      }
+    } catch (error) {
+      console.error('JWT validation error:', error)
+      throw error
     }
   }
 }

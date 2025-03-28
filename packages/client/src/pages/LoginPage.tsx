@@ -27,6 +27,9 @@ const LoginPage = () => {
   const kakaoUrl = `${KAKAO_AUTH_API_URL}?response_type=code&client_id=${import.meta.env.VITE_KAKAO_REST_API_KEY}&redirect_uri=${import.meta.env.VITE_KAKAO_REDIRECT_URI}`
   const naverUrl = `${NAVER_AUTH_API_URL}?response_type=code&client_id=${import.meta.env.VITE_NAVER_CLIENT_ID}&state=${naverRandomState}&redirect_uri=${import.meta.env.VITE_NAVER_REDIRECT_URI}`
 
+  console.log('KAKAO_REST_API_KEY:', import.meta.env.VITE_KAKAO_REST_API_KEY)
+  console.log('KAKAO_REDIRECT_URI:', import.meta.env.VITE_KAKAO_REDIRECT_URI)
+
   const [isVerificationSuccess, setIsVerificationSuccess] =
     useState<boolean>(false)
   const methods = useForm<PostLoginReq>()

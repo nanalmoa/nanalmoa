@@ -55,18 +55,13 @@ export class UsersService {
   }
 
   async checkUserExists(userUuid: string): Promise<boolean> {
-    try {
-      await this.getUserByUuid(userUuid)
-      return true
-    } catch (error) {
-      if (
-        error instanceof BusinessException &&
-        error.getErrorCode().code === ErrorCode.USER_NOT_FOUND.code
-      ) {
-        return false
-      }
-      throw error
-    }
+    // console.log('[checkUserExists] userUuid:', userUuid, typeof userUuid)
+
+    const user = await this.userRepository.findOne({ where: { userUuid } })
+
+    console.log('[checkUserExists] result:', user)
+
+    return !!user
   }
 
   private determineSearchType(
