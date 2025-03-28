@@ -23,8 +23,9 @@ import { toast } from 'react-toastify'
 
 const LoginPage = () => {
   const naverRandomState = generateRandomState()
-  const kakaoUrl = `${KAKAO_AUTH_API_URL}?response_type=code&client_id=${import.meta.env.VITE_KAKAO_REST_API_KEY}&redirect_uri=${window.origin}${path.loginRedirect}?at=kakao`
-  const naverUrl = `${NAVER_AUTH_API_URL}?response_type=code&client_id=${import.meta.env.VITE_NAVER_CLIENT_ID}&state=${naverRandomState}&redirect_uri=${window.origin}${path.loginRedirect}?at=naver`
+  // 환경변수에서 직접 리다이렉트 URI를 사용하도록 수정
+  const kakaoUrl = `${KAKAO_AUTH_API_URL}?response_type=code&client_id=${import.meta.env.VITE_KAKAO_REST_API_KEY}&redirect_uri=${import.meta.env.VITE_KAKAO_REDIRECT_URI}`
+  const naverUrl = `${NAVER_AUTH_API_URL}?response_type=code&client_id=${import.meta.env.VITE_NAVER_CLIENT_ID}&state=${naverRandomState}&redirect_uri=${import.meta.env.VITE_NAVER_REDIRECT_URI}`
 
   const [isVerificationSuccess, setIsVerificationSuccess] =
     useState<boolean>(false)
