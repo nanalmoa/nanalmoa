@@ -1,4 +1,3 @@
-import camera from '@/assets/imgs/camera.png'
 import { Button } from '@/components/common'
 
 type Props = {
@@ -27,7 +26,7 @@ const SelectOptions = ({
           <div className="absolute -left-2 h-32 w-32 rounded-full bg-violet-300 blur-xl" />
           <div className="bg-white-400 absolute left-4 top-4 h-20 w-20 rounded-full blur-lg" />
           <img
-            src={camera}
+            src="/imgs/camera.png"
             alt="camera"
             width={128}
             height={128}

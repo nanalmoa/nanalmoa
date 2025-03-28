@@ -1,4 +1,3 @@
-import landingLogo from '@/assets/svgs/landing-logo.svg'
 import { useUser } from '@/hooks/use-user'
 import { path } from '@/routes/path'
 import { cn } from '@/utils/cn'
@@ -27,7 +26,7 @@ const LandingPage = ({ isLanding = false }: Props) => {
         <div className="bg-primary-300 absolute -left-2 h-64 w-64 rounded-full blur-xl" />
         <div className="absolute left-16 top-20 h-28 w-28 rounded-full bg-white blur-lg" />
         <img
-          src={landingLogo}
+          src="/svgs/landing-logo.svg"
           alt="Landing Logo"
           width={240}
           height={240}

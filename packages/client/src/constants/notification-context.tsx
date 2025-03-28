@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useRef } from 'react'
-import logo from '@/assets/svgs/logo.svg'
 import useThrottle from '@/hooks/use-throttle'
 
 interface NotificationOptions {
@@ -76,8 +75,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
     if (Notification.permission !== 'granted') return
 
     const newOption = {
-      badge: logo,
-      icon: logo,
+      badge: '/svgs/logo.svg',
+      icon: '/svgs/logo.svg',
       ...options,
     }
 

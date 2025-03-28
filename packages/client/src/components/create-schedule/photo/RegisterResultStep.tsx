@@ -1,5 +1,3 @@
-import success from '@/assets/imgs/success.png'
-import error from '@/assets/imgs/error.png'
 import { SelectOptions } from '.'
 import { path } from '@/routes/path'
 import { UseMutationResult } from '@tanstack/react-query'
@@ -36,7 +34,7 @@ const RegisterResultStep = ({
   return (
     <div className="flex flex-col items-center gap-y-10">
       <img
-        src={isSuccess ? success : error}
+        src={isSuccess ? '/imgs/success.png' : '/imgs/error.png'}
         alt={isSuccess ? 'success' : 'error'}
         width={128}
         height={128}

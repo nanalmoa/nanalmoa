@@ -1,6 +1,5 @@
 import EventItem from './EventItem'
 import { GetSchedulesRes } from '@/types/schedules'
-import calendar from '@/assets/imgs/calendar.png'
 import { LoadingSpinner } from '../common'
 import { cn } from '@/utils/cn'
 
@@ -21,7 +20,7 @@ const EventContainer = ({ schedules, isLoading }: Props) => {
       {!isLoading && schedules && schedules.length === 0 && (
         <div className="flex flex-col items-center gap-y-2">
           <img
-            src={calendar}
+            src="/imgs/calendar.png"
             alt="CalendarImg"
             width={100}
             height={100}

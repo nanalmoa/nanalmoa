@@ -1,4 +1,3 @@
-import microphone from '@/assets/imgs/microphone.png'
 import { Button } from '@/components/common'
 import useAudioRecord from '@/hooks/use-audio-record'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -61,7 +60,7 @@ const StartAudio = ({ handlePost }: StartAudioProps) => {
             <div className="absolute -left-2 h-32 w-32 rounded-full bg-violet-300 blur-xl" />
             <div className="bg-white-400 absolute left-4 top-4 h-20 w-20 rounded-full blur-lg" />
             <img
-              src={microphone}
+              src="/imgs/microphone.png"
               alt="microphone"
               width={128}
               height={128}

@@ -1,5 +1,3 @@
-import error from '@/assets/imgs/error.png'
-import success from '@/assets/imgs/success.png'
 import { CategoryTag } from '@/components/common'
 import { repeatTypeLabels } from '@/constants/schedules'
 import { useModal } from '@/hooks/use-modal'
@@ -75,7 +73,7 @@ const AnalysisResultStep = ({
     <>
       <div className="flex flex-col items-center gap-y-10">
         <img
-          src={isAnalysisSuccess ? success : error}
+          src={isAnalysisSuccess ? '/imgs/success.png' : '/imgs/error.png'}
           alt={isAnalysisSuccess ? 'success' : 'error'}
           width={128}
           height={128}

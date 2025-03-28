@@ -1,5 +1,4 @@
 import { postSchedules } from '@/api/schedules/post-schedules'
-import success from '@/assets/imgs/success.png'
 import { Button } from '@/components/common'
 import ScheduleForm from '@/components/common/schedule-form/ScheduleForm'
 import { QUERY_KEYS } from '@/constants/api'
@@ -86,7 +85,7 @@ const SuccessAudio = ({ results, createSchedules, moveStep }: Props) => {
       <div className="flex flex-col items-center gap-y-10">
         {!isManualInput && (
           <>
-            <img src={success} alt="success" />
+            <img src="/imgs/success.png" alt="success" />
 
             <div className="flex flex-col items-center gap-y-6">
               <p className="text-center text-lg font-bold">

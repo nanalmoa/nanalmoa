@@ -1,4 +1,3 @@
-import error from '@/assets/imgs/error.png'
 import { Button } from '@/components/common'
 import { useModal } from '@/hooks/use-modal'
 import { CreateScheduleStepEnum } from '@/types/common'
@@ -13,7 +12,7 @@ const FailAudio = ({ moveStep }: FailProps) => {
   return (
     <>
       <div className="flex flex-col items-center gap-y-10">
-        <img src={error} alt="error" width={128} height={128} />
+        <img src="/imgs/error.png" alt="error" width={128} height={128} />
 
         <div className="flex flex-col items-center gap-y-6">
           <p className="text-center text-lg font-bold">

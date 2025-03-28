@@ -1,4 +1,3 @@
-import logo from '@/assets/svgs/logo.svg'
 import { path } from '@/routes/path'
 import { cn } from '@/utils/cn'
 import { Link } from 'react-router-dom'
@@ -24,7 +23,7 @@ const Header = () => {
       >
         <Link to={path.schedules}>
           <img
-            src={logo}
+            src="/svgs/logo.svg"
             alt="Logo"
             className="sm:h-15 h-8 w-40 sm:w-[200px]"
           />

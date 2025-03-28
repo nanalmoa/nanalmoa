@@ -1,6 +1,4 @@
 import { postLogin } from '@/api/auth/post-login'
-import kakaoLogin from '@/assets/imgs/kakao-login.png'
-import naverLogin from '@/assets/imgs/naver-login.png'
 import { Button, PhoneNumberInput } from '@/components/common'
 import Divider from '@/components/common/Divider'
 import Toast from '@/components/common/Toast'
@@ -99,10 +97,10 @@ const LoginPage = () => {
         <div className="flex flex-col items-center gap-y-2">
           <h3>편리한 로그인</h3>
           <Link to={kakaoUrl}>
-            <img src={kakaoLogin} />
+            <img src="/imgs/kakao-login.png" />
           </Link>
           <Link to={naverUrl}>
-            <img src={naverLogin} className="h-[45px] w-[183px]" />
+            <img src="/imgs/naver-login.png" className="h-[45px] w-[183px]" />
           </Link>
         </div>
       </div>

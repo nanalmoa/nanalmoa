@@ -1,4 +1,3 @@
-import camera from '@/assets/imgs/camera.png'
 import { useModal } from '@/hooks/use-modal'
 import { usePhoto } from '@/hooks/use-photo'
 import { useEffect, useRef } from 'react'
@@ -32,7 +31,7 @@ const InfoStep = () => {
         <div className="relative">
           <div className="absolute -left-2 h-32 w-32 rounded-full bg-blue-300 blur-xl" />
           <div className="bg-white-400 absolute left-4 top-4 h-20 w-20 rounded-full blur-lg" />
-          <img src={camera} alt="camera" className="relative" />
+          <img src="/imgs/camera.png" alt="camera" className="relative" />
         </div>
         <div className="flex flex-col items-center justify-center gap-y-4 rounded-lg border-2 p-4 text-center text-sm sm:p-6">
           <p className="mb-3 text-lg font-bold">
