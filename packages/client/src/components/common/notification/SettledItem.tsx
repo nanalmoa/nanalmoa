@@ -3,22 +3,20 @@ import {
   invitationTypeLabels,
 } from '@/constants/schedules'
 import {
-  IInvitation,
-  InvitationRoleEnum,
+  IGroupInvitations,
+  IManagerInvitations,
   InvitationTypeEnum,
 } from '@/types/invitations'
 import { cn } from '@/utils/cn'
 
 type Props = {
-  notification: IInvitation
+  notification: IGroupInvitations | IManagerInvitations
+  isSender: boolean
 }
 
-const SettledItem = ({ notification }: Props) => {
-  const { type, status, role, inviterName } = notification
-  const isGroupInvitation = type === InvitationTypeEnum.Group
-  const isSender =
-    role === InvitationRoleEnum.GROUP_ADMIN ||
-    role === InvitationRoleEnum.MANAGER
+const SettledItem = ({ notification, isSender }: Props) => {
+  const { invitationType, status, inviterName } = notification
+  const isGroupInvitation = invitationType === InvitationTypeEnum.Group
 
   return (
     <div className="flex w-full flex-col gap-y-2">
@@ -29,7 +27,7 @@ const SettledItem = ({ notification }: Props) => {
             isGroupInvitation ? 'bg-primary-yellow' : 'bg-indigo-200',
           )}
         >
-          {invitationTypeLabels[type]}
+          {invitationTypeLabels[invitationType]}
         </div>
         <p className="text-xs">
           <strong className="inline-block max-w-28 truncate align-middle text-sm">
@@ -39,7 +37,10 @@ const SettledItem = ({ notification }: Props) => {
         </p>
       </div>
       <p className="text-center text-xs">
-        <strong className="text-sm">{invitationTypeLabels[type]}</strong> 초대가{' '}
+        <strong className="text-sm">
+          {invitationTypeLabels[invitationType]}
+        </strong>{' '}
+        초대가{' '}
         <strong className="text-sm">{invitationStatusLabels[status]}</strong>
         되었습니다.
       </p>
