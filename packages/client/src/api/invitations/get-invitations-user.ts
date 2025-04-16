@@ -5,7 +5,7 @@ import { API_DOMAINS } from '@/constants/api'
 
 export const getInvitationsUser = async () => {
   const { data } = await baseAPI.get<GetInvitationsUserRes, AxiosResponse>(
-    `${API_DOMAINS.INVITATIONS}/user`,
+    `${API_DOMAINS.INVITATIONS}`,
   )
 
   return data
