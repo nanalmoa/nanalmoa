@@ -1,13 +1,9 @@
-import { GetGroupInvitationRes } from '@/types/group'
-import {
-  IGetManagerInvitationRes,
-  IGetMyManagersRes,
-  IGetMySubordinatesRes,
-} from '@/types/manager'
+import { IGroupInvitations, IManagerInvitations } from '@/types/invitations'
+import { IGetMyManagersRes, IGetMySubordinatesRes } from '@/types/manager'
 
 type ItemType =
-  | GetGroupInvitationRes[]
-  | IGetManagerInvitationRes
+  | IGroupInvitations[]
+  | IManagerInvitations[]
   | IGetMySubordinatesRes
   | IGetMyManagersRes
 

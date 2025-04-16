@@ -1,15 +1,10 @@
 import { deleteManager } from '@/api/manager/delete-manager'
 import { deleteSubordinate } from '@/api/manager/delete-subordinate'
-import { getManagerInvitationReceived } from '@/api/manager/get-manager-invitation-received'
-import { getManagerInvitationSend } from '@/api/manager/get-manager-invitation-send'
 import { getMyManagers } from '@/api/manager/get-my-managers'
 import { getMySubordinates } from '@/api/manager/get-my-subordinates'
-import { patchManagerAccept } from '@/api/manager/patch-manager-accept'
-import { patchManagerCancel } from '@/api/manager/patch-manager-cancel'
-import { patchManagerReject } from '@/api/manager/patch-manager-reject'
-import { postManagerInvitation } from '@/api/manager/post-manager-invitation'
+import { patchInvitationAccept } from '@/api/invitations/patch-invitations-accept'
+import { patchInvitationReject } from '@/api/invitations/patch-invitations-reject'
 import { Button } from '@/components/common'
-// import Toast from '@/components/common/Toast'
 import UserSelector from '@/components/common/UserSelector'
 import RefreshIcon from '@/components/icons/RefreshIcon'
 import InvitationLayout from '@/components/setting/InvitationLayout'
@@ -25,18 +20,23 @@ import { useModal } from '@/hooks/use-modal'
 import { path } from '@/routes/path'
 import { UserWithPhoneNumber } from '@/types/auth'
 import {
-  IGetManagerInvitationRes,
+  // IGetManagerInvitationRes,
   IGetMyManagersRes,
   IGetMySubordinatesRes,
-  IPatchManagerInvitationRes,
-  IPostManagerInvitationRes,
-  IRejectManagerInvitationRes,
 } from '@/types/manager'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
+import { AxiosError, AxiosResponse } from 'axios'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
+import { postInvitation } from '@/api/invitations/post-invitations'
+import {
+  GetInvitationsUserRes,
+  InvitationTypeEnum,
+  IPostInvitation,
+} from '@/types/invitations'
+import { getInvitationsUser } from '@/api/invitations/get-invitations-user'
+import { patchInvitationCancel } from '@/api/invitations/patch-invitations-cancel'
 
 const SettingManagerPage = () => {
   const queryClient = useQueryClient()
@@ -47,16 +47,10 @@ const SettingManagerPage = () => {
   )
 
   // 보낸 초대 현황
-  const { data: sendedInvitations } = useQuery<IGetManagerInvitationRes>({
+  const { data: invitations } = useQuery<GetInvitationsUserRes>({
     queryKey: [QUERY_KEYS.GET_MANAGER_INVITATION_SEND],
-    queryFn: () => getManagerInvitationSend(),
+    queryFn: () => getInvitationsUser(),
     // enabled: !selectedUser,
-  })
-
-  // 받은 초대 현황
-  const { data: receivedInvitations } = useQuery<IGetManagerInvitationRes>({
-    queryKey: [QUERY_KEYS.GET_MANAGER_INVITATION_RECEIVED],
-    queryFn: () => getManagerInvitationReceived(),
   })
 
   // 자신의 피관리자 목록 조회
@@ -72,12 +66,8 @@ const SettingManagerPage = () => {
   })
 
   // 받은 요청 거절
-  const mutationReject = useMutation<
-    IRejectManagerInvitationRes,
-    Error,
-    number
-  >({
-    mutationFn: (id: number) => patchManagerReject(id),
+  const mutationReject = useMutation<AxiosResponse, Error, number>({
+    mutationFn: (id: number) => patchInvitationReject(id),
     onSuccess: () => {
       toast.success('초대 요청 거절하였습니다.')
     },
@@ -93,49 +83,49 @@ const SettingManagerPage = () => {
   }
 
   // 받은 요청 수락
-  const mutationAccept = useMutation<IPatchManagerInvitationRes, Error, number>(
-    {
-      mutationFn: (id: number) => patchManagerAccept(id),
-      onSuccess: () => {
-        toast.success('초대 요청 수락하였습니다.')
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_MANAGER_INVITATION_RECEIVED],
-        })
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_MANAGER_MANAGERS],
-        })
-      },
+  const mutationAccept = useMutation<AxiosResponse, Error, number>({
+    mutationFn: (id: number) => patchInvitationAccept(id),
+    onSuccess: () => {
+      toast.success('초대 요청 수락하였습니다.')
     },
-  )
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_MANAGER_INVITATION_RECEIVED],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_MANAGER_MANAGERS],
+      })
+    },
+  })
 
   const handleManagerAccept = (id: number) => {
     mutationAccept.mutate(id)
   }
 
   // 보낸 요청 철회
-  const mutationCancel = useMutation<IPatchManagerInvitationRes, Error, number>(
-    {
-      mutationFn: (id: number) => patchManagerCancel(id),
-      onSuccess: () => {
-        toast.success('초대 요청 취소하였습니다.')
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: [QUERY_KEYS.GET_MANAGER_INVITATION_SEND],
-        })
-      },
+  const mutationCancel = useMutation<AxiosResponse, Error, number>({
+    mutationFn: (id: number) => patchInvitationCancel(id),
+    onSuccess: () => {
+      toast.success('초대 요청 취소하였습니다.')
     },
-  )
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_MANAGER_INVITATION_SEND],
+      })
+    },
+  })
 
   const handleManagerCancel = (id: number) => {
     mutationCancel.mutate(id)
   }
 
   // 새로운 관리자 초대 생성
-  const mutation = useMutation<IPostManagerInvitationRes, AxiosError, string>({
-    mutationFn: postManagerInvitation,
+  const mutation = useMutation<IPostInvitation, AxiosError, string>({
+    mutationFn: (uuid: string) =>
+      postInvitation({
+        invitationType: InvitationTypeEnum.Manager,
+        inviteeUuid: uuid,
+      }),
     onSuccess: () => {
       toast.success('초대에 성공했습니다!')
       queryClient.invalidateQueries({
@@ -243,11 +233,11 @@ const SettingManagerPage = () => {
         <div className="py-3">
           <InvitationsSection
             title="보낸 초대 현황"
-            itemsLength={sendedInvitations?.length || 0}
+            itemsLength={invitations?.sent.managerInvitations.length || 0}
             description="💡 보낸 초대가 수락되면 관리자로 등록됩니다"
           >
             <InvitationLayout
-              items={sendedInvitations}
+              items={invitations?.sent.managerInvitations}
               Component={SendedInvitation}
               message="보낸 초대가 없습니다."
               // 초대 철회
@@ -258,11 +248,11 @@ const SettingManagerPage = () => {
         <div>
           <InvitationsSection
             title="받은 초대 현황"
-            itemsLength={receivedInvitations?.length || 0}
+            itemsLength={invitations?.received.managerInvitations.length || 0}
             description="💡 받은 초대를 수락하면 피관리자로 등록됩니다"
           >
             <InvitationLayout
-              items={receivedInvitations}
+              items={invitations?.received.managerInvitations}
               Component={ReceivedInvitation}
               message="받은 초대가 없습니다."
               // 초대 거절
@@ -312,7 +302,6 @@ const SettingManagerPage = () => {
           />
         </InvitationsSection>
       </SettingSection>
-      {/* <Toast /> */}
     </div>
   )
 }

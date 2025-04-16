@@ -19,18 +19,50 @@ export enum InvitationStatusEnum {
 }
 
 export interface IInvitation {
-  id: number
-  type: InvitationTypeEnum
-  role: InvitationRoleEnum
+  sent: {
+    groupInvitations: IGroupInvitations[]
+    managerInvitations: IManagerInvitations[]
+  }
+  received: {
+    groupInvitations: IGroupInvitations[]
+    managerInvitations: IManagerInvitations[]
+  }
+}
+export interface IGroupInvitations {
+  invitationId: number
+  invitationType: InvitationTypeEnum.Group
   status: InvitationStatusEnum
+  inviterUuid: string
+  inviteeUuid: string
   createdAt: Date
   updatedAt: Date
-  inviterUuid: string
   inviterName: string
-  inviteeUuid: string
   inviteeName: string
-  groupId: string
+  groupId: number
   groupName: string
 }
 
-export interface GetInvitationsUserRes extends Array<IInvitation> {}
+export interface IManagerInvitations {
+  invitationId: number
+  invitationType: InvitationTypeEnum.Manager
+  status: InvitationStatusEnum
+  inviterUuid: string
+  inviteeUuid: string
+  createdAt: Date
+  updatedAt: Date
+  inviterName: string
+  inviteeName: string
+}
+
+export interface IPostInvitation {
+  invitationType: InvitationTypeEnum
+  inviteeUuid: string
+  groupId?: number
+}
+
+export interface GetInvitationsUserRes extends IInvitation {}
+
+export interface IInvitationRes extends IManagerInvitations {
+  groupId?: number
+  groupName?: string
+}

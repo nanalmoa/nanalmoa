@@ -1,22 +1,12 @@
-import { IManagerInvitation } from '@/types/manager'
-import { GetGroupInvitationRes } from '@/types/group'
+import { IGroupInvitations, IManagerInvitations } from '@/types/invitations'
 
 type Props = {
-  item: IManagerInvitation | GetGroupInvitationRes
+  item: IManagerInvitations | IGroupInvitations
   onClickReject?: (id: number) => void
 }
 
 const SendedInvitation = ({ item, onClickReject }: Props) => {
-  /* manager 타입이면 true, group 타입이면 false를 반환합니다 */
-  const isManagerInvitation = (
-    item: IManagerInvitation | GetGroupInvitationRes,
-  ): item is IManagerInvitation => {
-    return 'managerInvitationId' in item
-  }
-
-  const inviteId = isManagerInvitation(item)
-    ? item.managerInvitationId
-    : item.invitationId
+  const inviteId = item.invitationId
 
   // 3분이 지나면 화면에 표시하지 않음
   // let updatedAt: Date | undefined
@@ -37,9 +27,7 @@ const SendedInvitation = ({ item, onClickReject }: Props) => {
   /* 그룹 dto에 맞게 수정해서 사용해주세요 */
   return (
     <div className="mb-1 flex justify-between rounded bg-neutral-200 px-3 py-[7px]">
-      <div className="font-bold">
-        {isManagerInvitation(item) ? item.subordinateName : item.inviteeName}
-      </div>
+      <div className="font-bold">{item.inviteeName}</div>
       <div className="flex gap-1">
         {item.status === 'PENDING' && (
           <>

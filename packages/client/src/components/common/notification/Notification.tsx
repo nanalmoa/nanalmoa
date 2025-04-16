@@ -27,8 +27,9 @@ const Notification = () => {
 
   // invitations가 변경될 때마다 알림 발송
   useEffect(() => {
-    if (invitations && invitations.length > 0) {
-      invitations.forEach((invitation) => {
+    if (invitations && invitations.received) {
+      const { groupInvitations, managerInvitations } = invitations.received
+      ;[...groupInvitations, ...managerInvitations].forEach((invitation) => {
         fireNotificationWithTimeout('새로운 초대', 5000, {
           body: `${invitation.inviterName}님으로부터 초대가 도착했습니다.`,
         })
@@ -53,14 +54,37 @@ const Notification = () => {
               'flex max-h-80 min-h-24 w-60 flex-col overflow-hidden overflow-y-auto rounded-md border border-neutral-300 bg-neutral-100',
             )}
           >
-            {invitations.length === 0 ? (
+            {invitations.received.groupInvitations.length === 0 &&
+            invitations.received.managerInvitations.length === 0 ? (
               <p className="mt-10 text-center text-sm">알림이 없습니다.</p>
             ) : (
               <>
-                {invitations?.map((invitation) => (
+                {invitations.sent.groupInvitations.map((invitation) => (
                   <NotificationItem
-                    key={invitation.id}
+                    key={invitation.invitationId}
                     notification={invitation}
+                    isSender={true}
+                  />
+                ))}
+                {invitations.sent.managerInvitations.map((invitation) => (
+                  <NotificationItem
+                    key={invitation.invitationId}
+                    notification={invitation}
+                    isSender={true}
+                  />
+                ))}
+                {invitations.received.groupInvitations.map((invitation) => (
+                  <NotificationItem
+                    key={invitation.invitationId}
+                    notification={invitation}
+                    isSender={false}
+                  />
+                ))}
+                {invitations.received.managerInvitations.map((invitation) => (
+                  <NotificationItem
+                    key={invitation.invitationId}
+                    notification={invitation}
+                    isSender={false}
                   />
                 ))}
               </>

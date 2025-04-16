@@ -1,53 +1,32 @@
-import {
-  getGroupInvitationReceived,
-  getGroupInvitationSent,
-} from '@/api/group/get-group-invitation'
 import { QUERY_KEYS } from '@/constants/api'
-import {
-  GetGroupInvitationRes,
-  PatchGroupAcceptRes,
-  PatchGroupCancelRes,
-  PatchGroupRejectRes,
-} from '@/types/group'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AxiosError } from 'axios'
+import { AxiosResponse } from 'axios'
 import SettingSection from '../setting/SettingSection'
 import InvitationsSection from '../setting/InvitationsSection'
 import InvitationLayout from '../setting/InvitationLayout'
 import ReceivedInvitation from '../setting/ReceivedInvitation'
-import { patchGroupReject } from '@/api/group/patch-group-invitation'
-import {
-  patchGroupAccept,
-  patchGroupCancel,
-} from '@/api/group/patch-group-invitation'
+
 import SendedInvitation from '../setting/SendedInvitation'
 import { toast } from 'react-toastify'
 import Toast from '../common/Toast'
+import { getInvitationsUser } from '@/api/invitations/get-invitations-user'
+import { GetInvitationsUserRes } from '@/types/invitations'
+import { patchInvitationReject } from '@/api/invitations/patch-invitations-reject'
+import { patchInvitationAccept } from '@/api/invitations/patch-invitations-accept'
+import { patchInvitationCancel } from '@/api/invitations/patch-invitations-cancel'
 
 const GroupInvited = () => {
   const queryClient = useQueryClient()
 
-  //받은 초대 현황
-  const { data: GroupInvitationReceived } = useQuery<
-    GetGroupInvitationRes[],
-    AxiosError
-  >({
+  //초대 현황
+  const { data: invitations } = useQuery<GetInvitationsUserRes>({
     queryKey: [QUERY_KEYS.GET_GROUP_INVITATION_RECEIVED],
-    queryFn: getGroupInvitationReceived,
-  })
-
-  //보낸 초대 현황
-  const { data: GroupInvitationSent } = useQuery<
-    GetGroupInvitationRes[],
-    AxiosError
-  >({
-    queryKey: [QUERY_KEYS.GET_GROUP_INVITATION_SEND],
-    queryFn: getGroupInvitationSent,
+    queryFn: getInvitationsUser,
   })
 
   //받은 초대 거절
-  const mutationReject = useMutation<PatchGroupRejectRes, Error, number>({
-    mutationFn: (id: number) => patchGroupReject({ id }),
+  const mutationReject = useMutation<AxiosResponse, Error, number>({
+    mutationFn: (id: number) => patchInvitationReject(id),
     onSuccess: () => {
       toast.success('초대 요청 거절하였습니다.')
     },
@@ -59,8 +38,8 @@ const GroupInvited = () => {
   })
 
   //받은 초대 수락
-  const mutationAccept = useMutation<PatchGroupAcceptRes, Error, number>({
-    mutationFn: (id: number) => patchGroupAccept({ id }),
+  const mutationAccept = useMutation<AxiosResponse, Error, number>({
+    mutationFn: (id: number) => patchInvitationAccept(id),
     onSuccess: () => {
       toast.success('초대 요청 수락하였습니다.')
     },
@@ -75,8 +54,8 @@ const GroupInvited = () => {
   })
 
   //초대 철회
-  const mutationCancel = useMutation<PatchGroupCancelRes, Error, number>({
-    mutationFn: (id: number) => patchGroupCancel({ id }),
+  const mutationCancel = useMutation<AxiosResponse, Error, number>({
+    mutationFn: (id: number) => patchInvitationCancel(id),
     onSuccess: () => {
       toast.success('초대 요청 취소하였습니다.')
     },
@@ -103,10 +82,10 @@ const GroupInvited = () => {
         <div className="py-3">
           <InvitationsSection
             title="받은 초대 현황"
-            itemsLength={GroupInvitationReceived?.length || 0}
+            itemsLength={invitations?.received.groupInvitations.length || 0}
           >
             <InvitationLayout
-              items={GroupInvitationReceived}
+              items={invitations?.received.groupInvitations}
               Component={ReceivedInvitation}
               message="받은 초대가 없습니다."
               // 초대 거절
@@ -119,10 +98,10 @@ const GroupInvited = () => {
         <div>
           <InvitationsSection
             title="보낸 초대 현황"
-            itemsLength={GroupInvitationSent?.length || 0}
+            itemsLength={invitations?.sent.groupInvitations.length || 0}
           >
             <InvitationLayout
-              items={GroupInvitationSent}
+              items={invitations?.sent.groupInvitations}
               Component={SendedInvitation}
               message="보낸 초대가 없습니다."
               // 초대 철회
