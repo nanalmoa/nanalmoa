@@ -3,7 +3,7 @@ import Modal from '../common/Modal'
 import { Button } from '../common'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/constants/api'
-import { postGroup, postInvite } from '@/api/group/post-group'
+import { postGroup } from '@/api/group/post-group'
 import { toast } from 'react-toastify'
 import { useState } from 'react'
 import UserSelector from '../common/UserSelector'
@@ -12,10 +12,16 @@ import { useParams } from 'react-router-dom'
 import { GetGroupDetail, PostGroupReq, PostGroupRes } from '@/types/group'
 import Toast from '../common/Toast'
 import { AxiosError } from 'axios'
+import { InvitationTypeEnum } from '@/types/invitations'
+import { postInvitation } from '@/api/invitations/post-invitations'
 
 type Props = TModal & {
   isCreateGroup: boolean
   members?: GetGroupDetail['members']
+}
+type InviteGroupPayload = {
+  groupId: number
+  inviteeUuids: string[]
 }
 
 const CreateGroupModal = ({ onClose, isCreateGroup, members }: Props) => {
@@ -26,7 +32,7 @@ const CreateGroupModal = ({ onClose, isCreateGroup, members }: Props) => {
   const [groupName, setGroupName] = useState<string>('')
   const [groupId, setGroupId] = useState<number>(0)
 
-  const { id } = useParams<{ id: string }>() // URL 파라미터 타입 지정
+  const { id } = useParams<{ id: string }>()
 
   // 그룹명 생성
   const groupMutation = useMutation<PostGroupRes, AxiosError, PostGroupReq>({
@@ -50,9 +56,18 @@ const CreateGroupModal = ({ onClose, isCreateGroup, members }: Props) => {
   }
 
   //그룹멤버 초대
-  const inviteMutation = useMutation({
+  const inviteMutation = useMutation<void, AxiosError, InviteGroupPayload>({
     mutationKey: [QUERY_KEYS.POST_GROUP_INVITE],
-    mutationFn: postInvite,
+    mutationFn: ({ groupId, inviteeUuids }) =>
+      Promise.all(
+        inviteeUuids.map((uuid: string) =>
+          postInvitation({
+            invitationType: InvitationTypeEnum.Group,
+            inviteeUuid: uuid,
+            groupId,
+          }),
+        ),
+      ).then(() => {}), // 반환 타입을 void로 맞춤
     onSuccess: () => {
       toast.success('친구를 초대했습니다')
       onClose()
