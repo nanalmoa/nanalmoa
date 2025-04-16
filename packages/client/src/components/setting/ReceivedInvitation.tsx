@@ -1,23 +1,20 @@
-import { IManagerInvitation } from '@/types/manager'
-import { GetGroupInvitationRes } from '@/types/group'
+import { IGroupInvitations, IManagerInvitations } from '@/types/invitations'
 
 type Props = {
-  item: IManagerInvitation | GetGroupInvitationRes
+  item: IManagerInvitations | IGroupInvitations
   onClickReject?: (id: number) => void
   onClickAccept?: (id: number) => void
 }
 
 const ReceivedInvitation = ({ item, onClickReject, onClickAccept }: Props) => {
-  /* IManagerInvitation 타입이면 true, getGroupInvitationRes 타입이면 false를 반환합니다 */
+  /* IManagerInvitations 타입이면 true, IGroupInvitations 타입이면 false를 반환합니다 */
   const isManagerInvitation = (
-    item: IManagerInvitation | GetGroupInvitationRes,
-  ): item is IManagerInvitation => {
+    item: IManagerInvitations | IGroupInvitations,
+  ): item is IManagerInvitations => {
     return 'managerInvitationId' in item
   }
 
-  const inviteId = isManagerInvitation(item)
-    ? item.managerInvitationId
-    : item.invitationId
+  const inviteId = item.invitationId
 
   // 3분이 지나면 화면에 표시하지 않음
   // let updatedAt: Date | undefined
@@ -41,9 +38,7 @@ const ReceivedInvitation = ({ item, onClickReject, onClickAccept }: Props) => {
       {!isManagerInvitation(item) && (
         <div className="font-bold">{item.groupName}</div>
       )}
-      <div className="font-bold">
-        {isManagerInvitation(item) ? item.managerName : item.inviterName}
-      </div>
+      <div className="font-bold">{item.inviterName}</div>
       <div className="flex gap-1">
         {item.status === 'PENDING' && (
           <div className="flex gap-1">
