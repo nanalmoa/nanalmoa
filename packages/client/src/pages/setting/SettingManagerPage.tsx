@@ -19,11 +19,7 @@ import { QUERY_KEYS } from '@/constants/api'
 import { useModal } from '@/hooks/use-modal'
 import { path } from '@/routes/path'
 import { UserWithPhoneNumber } from '@/types/auth'
-import {
-  // IGetManagerInvitationRes,
-  IGetMyManagersRes,
-  IGetMySubordinatesRes,
-} from '@/types/manager'
+import { IGetMyManagersRes, IGetMySubordinatesRes } from '@/types/manager'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosError, AxiosResponse } from 'axios'
 import { useState } from 'react'
