@@ -1,6 +1,5 @@
 import { Button } from '@/components/common'
 import { GetGroupDetail } from '@/types/group'
-import Divider from '../common/Divider'
 import { useModal } from '@/hooks/use-modal'
 import CreateGroupModal from './CreateGroupModal'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -8,8 +7,9 @@ import { deleteGroupUser } from '@/api/group/delete-group'
 import { QUERY_KEYS } from '@/constants/api'
 import { toast } from 'react-toastify'
 import { useState } from 'react'
-import TrashCanIcon from '../icons/TrashCanIcon'
-import Modal from '../common/Modal'
+import Divider from '@/components/common/Divider'
+import Modal from '@/components/common/Modal'
+import TrashCanIcon from '@/components/icons/TrashCanIcon'
 
 type Props = {
   userUuid: string | undefined

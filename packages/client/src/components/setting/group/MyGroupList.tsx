@@ -5,7 +5,7 @@ import { GetGroupUserRes } from '@/types/group'
 import { useQuery } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { Link } from 'react-router-dom'
-import SettingSection from '../setting/SettingSection'
+import SettingSection from '../SettingSection'
 
 const MyGroupList = () => {
   //내 그룹 리스트 조회

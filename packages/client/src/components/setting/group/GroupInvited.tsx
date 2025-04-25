@@ -1,19 +1,18 @@
 import { QUERY_KEYS } from '@/constants/api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AxiosResponse } from 'axios'
-import SettingSection from '../setting/SettingSection'
-import InvitationsSection from '../setting/InvitationsSection'
-import InvitationLayout from '../setting/InvitationLayout'
-import ReceivedInvitation from '../setting/ReceivedInvitation'
-
-import SendedInvitation from '../setting/SendedInvitation'
 import { toast } from 'react-toastify'
-import Toast from '../common/Toast'
 import { getInvitationsUser } from '@/api/invitations/get-invitations-user'
 import { GetInvitationsUserRes } from '@/types/invitations'
 import { patchInvitationReject } from '@/api/invitations/patch-invitations-reject'
 import { patchInvitationAccept } from '@/api/invitations/patch-invitations-accept'
 import { patchInvitationCancel } from '@/api/invitations/patch-invitations-cancel'
+import SettingSection from '../SettingSection'
+import InvitationsSection from '../InvitationsSection'
+import InvitationLayout from '../InvitationLayout'
+import ReceivedInvitation from '../ReceivedInvitation'
+import SendedInvitation from '../SendedInvitation'
+import Toast from '@/components/common/Toast'
 
 const GroupInvited = () => {
   const queryClient = useQueryClient()
