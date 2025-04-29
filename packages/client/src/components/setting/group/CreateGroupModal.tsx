@@ -1,19 +1,19 @@
 import { TModal } from '@/types/common'
-import Modal from '../common/Modal'
-import { Button } from '../common'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/constants/api'
 import { postGroup } from '@/api/group/post-group'
 import { toast } from 'react-toastify'
 import { useState } from 'react'
-import UserSelector from '../common/UserSelector'
 import { UserWithPhoneNumber } from '@/types/auth'
 import { useParams } from 'react-router-dom'
 import { GetGroupDetail, PostGroupReq, PostGroupRes } from '@/types/group'
-import Toast from '../common/Toast'
 import { AxiosError } from 'axios'
 import { InvitationTypeEnum } from '@/types/invitations'
 import { postInvitation } from '@/api/invitations/post-invitations'
+import Modal from '@/components/common/Modal'
+import { Button } from '@/components/common'
+import UserSelector from '@/components/common/UserSelector'
+import Toast from '@/components/common/Toast'
 
 type Props = TModal & {
   isCreateGroup: boolean
@@ -42,9 +42,6 @@ const CreateGroupModal = ({ onClose, isCreateGroup, members }: Props) => {
       setIsCreateGroup(true)
       setGroupId(data.groupId)
     },
-    onError: () => {
-      toast.error('동일 그룹명을 가진 그룹에 소속되어 있습니다.')
-    },
   })
 
   const handleCreateGroup = () => {
@@ -71,9 +68,6 @@ const CreateGroupModal = ({ onClose, isCreateGroup, members }: Props) => {
     onSuccess: () => {
       toast.success('친구를 초대했습니다')
       onClose()
-    },
-    onError: (err) => {
-      toast.error(err.message)
     },
     onSettled: () => {
       queryClient.invalidateQueries({
